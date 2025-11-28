@@ -740,7 +740,7 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
             
             {gameState66.currentTrick.player || gameState66.currentTrick.opponent ? (
               <View style={styles.trickDisplay66}>
-                <ThemedText style={styles.playedLabel} lightColor="#FFFFFF" darkColor="#FFFFFF">Oyunlanan Kartlar</ThemedText>
+                <ThemedText style={styles.playedLabel} lightColor="#FFFFFF" darkColor="#FFFFFF">{t('cardsPlayed', language)}</ThemedText>
                 <View style={styles.cardsPlayedRow}>
                   {gameState66.currentTrick.player && (
                     <View style={[styles.trickCardDisplay, { backgroundColor: colors.primary }]}>

@@ -57,6 +57,11 @@ export const translations = {
     trump: 'Trump',
     exchange: 'Exchange with Trump',
     exchangeNineWithTrump: 'Exchange 9 with Trump',
+    cardsPlayed: 'Cards Played',
+    
+    // 66 Game
+    yourScore: 'Your Score',
+    opponentScore: 'Opponent Score',
     
     // Rules Screen
     objective: 'Objective',
@@ -173,6 +178,11 @@ export const translations = {
     trump: 'Koz',
     exchange: 'Kozla Değiştir',
     exchangeNineWithTrump: 'Dokuzu Kozla Değiştir',
+    cardsPlayed: 'Oyunlanan Kartlar',
+    
+    // 66 Game
+    yourScore: 'Senin Puanı',
+    opponentScore: 'Rakip Puanı',
     
     // Rules Screen
     objective: 'Hedef',
