@@ -444,13 +444,13 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
             <View style={styles.cardsRow}>
               {gameState66.opponent.hand.map((card, index) => (
                 <View key={`opp-${index}`} style={styles.cardWrapper}>
-                  <View style={[styles.card66, { backgroundColor: '#FFFFFF', borderColor: '#333333' }]}>
-                    <View style={styles.card66TopLeft}>
-                      <ThemedText style={[styles.card66Corner, { color: '#FF0000' }]}>?</ThemedText>
-                    </View>
-                    <ThemedText style={[styles.card66Middle, { color: '#FF0000' }]}>?</ThemedText>
-                    <View style={[styles.card66BottomRight, { transform: [{ rotate: '180deg' }] }]}>
-                      <ThemedText style={[styles.card66Corner, { color: '#FF0000' }]}>?</ThemedText>
+                  <View style={[styles.card66, { backgroundColor: '#1A5F7A', borderColor: '#0D3A4A' }]}>
+                    <View style={styles.cardBackPattern}>
+                      <View style={styles.backPatternLine} />
+                      <View style={styles.backPatternLine} />
+                      <View style={styles.backPatternLine} />
+                      <View style={styles.backPatternCircle} />
+                      <View style={styles.backPatternCircle} />
                     </View>
                   </View>
                 </View>
@@ -518,27 +518,40 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
                     },
                   ]}
                 >
-                  <View style={[styles.card66, { backgroundColor: '#FFFFFF', borderColor: '#333333', borderWidth: 2 }]}>
-                    <View style={styles.card66TopLeft}>
-                      <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
-                        {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
-                      </ThemedText>
-                      <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                  {['J', 'Q', 'K'].includes(card.rank) ? (
+                    <View style={[styles.card66, { backgroundColor: '#FFFFFF', borderColor: '#333333', borderWidth: 2 }]}>
+                      <View style={styles.card66FaceCardPattern}>
+                        <View style={[styles.facePattern1, { backgroundColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
+                        <View style={[styles.facePattern2, { backgroundColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
+                        <View style={[styles.facePattern3, { backgroundColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
+                      </View>
+                      <ThemedText style={[styles.card66FaceRank, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
                         {card.rank}
                       </ThemedText>
                     </View>
-                    <ThemedText style={[styles.card66Middle, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
-                      {card.rank}
-                    </ThemedText>
-                    <View style={[styles.card66BottomRight, { transform: [{ rotate: '180deg' }] }]}>
-                      <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
-                        {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
-                      </ThemedText>
-                      <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                  ) : (
+                    <View style={[styles.card66, { backgroundColor: '#FFFFFF', borderColor: '#333333', borderWidth: 2 }]}>
+                      <View style={styles.card66TopLeft}>
+                        <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                          {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
+                        </ThemedText>
+                        <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                          {card.rank}
+                        </ThemedText>
+                      </View>
+                      <ThemedText style={[styles.card66Middle, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
                         {card.rank}
                       </ThemedText>
+                      <View style={[styles.card66BottomRight, { transform: [{ rotate: '180deg' }] }]}>
+                        <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                          {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
+                        </ThemedText>
+                        <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                          {card.rank}
+                        </ThemedText>
+                      </View>
                     </View>
-                  </View>
+                  )}
                 </Pressable>
               ))}
             </View>
@@ -907,6 +920,58 @@ const styles = StyleSheet.create({
   card66BottomRight: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  card66FaceCardPattern: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingVertical: 2,
+  },
+  facePattern1: {
+    width: 30,
+    height: 2,
+    opacity: 0.6,
+    borderRadius: 1,
+  },
+  facePattern2: {
+    width: 25,
+    height: 2,
+    opacity: 0.4,
+    borderRadius: 1,
+  },
+  facePattern3: {
+    width: 28,
+    height: 2,
+    opacity: 0.7,
+    borderRadius: 1,
+  },
+  card66FaceRank: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  cardBackPattern: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingVertical: 4,
+  },
+  backPatternLine: {
+    width: 35,
+    height: 1.5,
+    backgroundColor: '#FFFFFF',
+    opacity: 0.3,
+    borderRadius: 1,
+  },
+  backPatternCircle: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FFFFFF',
+    opacity: 0.4,
+    marginVertical: 1,
   },
   trickDisplay: {
     alignItems: 'center',
