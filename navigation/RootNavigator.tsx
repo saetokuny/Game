@@ -17,7 +17,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Spacing, BorderRadius, Colors } from "@/constants/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Language, getLanguage } from "@/utils/storage";
+import { Language } from "@/utils/localization";
 
 export type RootStackParamList = {
   Main: undefined;
