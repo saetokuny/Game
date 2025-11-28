@@ -165,6 +165,32 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
     }, 300);
   };
 
+  const exchangeNineWithTrump = async () => {
+    if (!gameState66 || isProcessing || !gameState66.trump) return;
+    setIsProcessing(true);
+    await triggerHaptic();
+
+    const nineIndex = gameState66.player.hand.findIndex(c => c.rank === '9' && c.suit === gameState66.trump!.suit);
+    if (nineIndex === -1) {
+      setIsProcessing(false);
+      return;
+    }
+
+    const newHand = [...gameState66.player.hand];
+    newHand.splice(nineIndex, 1);
+
+    setGameState66(prev => prev ? {
+      ...prev,
+      player: { ...prev.player, hand: newHand },
+      trump: { ...gameState66.player.hand[nineIndex] },
+      deck: [gameState66.trump, ...prev.deck.slice(1)],
+    } : null);
+
+    setTimeout(() => {
+      setIsProcessing(false);
+    }, 300);
+  };
+
   const playCard66 = async (card: Card66) => {
     if (!gameState66 || isProcessing || gameState66.gamePhase !== 'playerTurn') return;
     setIsProcessing(true);
@@ -518,6 +544,9 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
             </View>
             
             <ThemedText style={styles.deckCount} lightColor="#FFFFFF" darkColor="#FFFFFF">
+              {t('trump', language)}: {gameState66.trump?.rank}{gameState66.trump?.suit === 'hearts' ? '♥' : gameState66.trump?.suit === 'diamonds' ? '♦' : gameState66.trump?.suit === 'clubs' ? '♣' : '♠'}
+            </ThemedText>
+            <ThemedText style={styles.deckCount} lightColor="#FFFFFF" darkColor="#FFFFFF">
               {t('remaining', language)}: {gameState66.deck.length}
             </ThemedText>
             
@@ -616,6 +645,22 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
               ))}
             </View>
             <ThemedText style={styles.playerLabel}>{t('you', language)}</ThemedText>
+            
+            {gameState66.trump && gameState66.player.hand.some(c => c.rank === '9' && c.suit === gameState66.trump!.suit) && gameState66.gamePhase === 'playerTurn' ? (
+              <Pressable
+                onPress={exchangeNineWithTrump}
+                disabled={isProcessing}
+                style={({ pressed }) => [
+                  styles.exchangeButton,
+                  {
+                    backgroundColor: colors.primary,
+                    opacity: pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <ThemedText style={styles.exchangeButtonText}>{t('exchangeNineWithTrump', language)}</ThemedText>
+              </Pressable>
+            ) : null}
           </View>
         </View>
 
@@ -1055,6 +1100,19 @@ const styles = StyleSheet.create({
   deckCount: {
     fontSize: 12,
     marginVertical: Spacing.xs,
+  },
+  exchangeButton: {
+    marginTop: Spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  exchangeButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   cardBackPattern: {
     width: '100%',

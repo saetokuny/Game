@@ -53,6 +53,10 @@ export const translations = {
     youWinGame: 'You Win the Game!',
     aiWinsGame: 'AI Wins the Game',
     gameDrawn: 'Game is a Draw',
+    remaining: 'Remaining',
+    trump: 'Trump',
+    exchange: 'Exchange with Trump',
+    exchangeNineWithTrump: 'Exchange 9 with Trump',
     
     // Rules Screen
     objective: 'Objective',
@@ -165,6 +169,10 @@ export const translations = {
     youWinGame: 'Oyunu Kazandın!',
     aiWinsGame: 'AI Oyunu Kazandı',
     gameDrawn: 'Oyun Berabere',
+    remaining: 'Kalan',
+    trump: 'Koz',
+    exchange: 'Kozla Değiştir',
+    exchangeNineWithTrump: 'Dokuzu Kozla Değiştir',
     
     // Rules Screen
     objective: 'Hedef',
