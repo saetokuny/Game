@@ -11,7 +11,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { GameButton } from "@/components/GameButton";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, Colors, BorderRadius } from "@/constants/theme";
-import { getGameStats, GameStats, getSettings } from "@/utils/storage";
+import { getGameStats, GameStats, getSettings, saveLanguage } from "@/utils/storage";
 import { t, Language } from "@/utils/localization";
 
 interface HomeScreenProps {
