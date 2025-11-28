@@ -15,11 +15,13 @@ import { saveCardDeck } from "@/utils/storage";
 interface CardDeckSelectionScreenProps {
   navigation: any;
   language: Language;
+  route?: any;
 }
 
 export default function CardDeckSelectionScreen({
   navigation,
   language,
+  route,
 }: CardDeckSelectionScreenProps) {
   const { isDark } = useTheme();
   const colors = isDark ? Colors.dark : Colors.light;
@@ -35,7 +37,8 @@ export default function CardDeckSelectionScreen({
   const handleStartGame = async () => {
     await saveCardDeck(selectedDeck);
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    navigation.navigate("Game");
+    const gameType = route?.params?.gameType || 'oicho-kabu';
+    navigation.navigate("Game", { gameType });
   };
 
   return (

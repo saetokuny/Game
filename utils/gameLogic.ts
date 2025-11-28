@@ -25,6 +25,7 @@ export interface GameState {
   playerTotalWins: number;
   opponentTotalWins: number;
   draws: number;
+  gameType: 'oicho-kabu' | '66';
 }
 
 const SUITS: Suit[] = ['hearts', 'diamonds', 'clubs', 'spades'];
@@ -51,6 +52,11 @@ export function shuffleDeck(deck: PlayingCard[]): PlayingCard[] {
 export function calculateHandValue(cards: PlayingCard[]): number {
   const sum = cards.reduce((acc, card) => acc + card.value, 0);
   return sum % 10;
+}
+
+export function calculateHandValue66(cards: PlayingCard[]): number {
+  const sum = cards.reduce((acc, card) => acc + card.value, 0);
+  return sum;
 }
 
 export function getHandName(value: number): string {
@@ -119,6 +125,29 @@ export function determineWinner(playerCards: PlayingCard[], opponentCards: Playi
   return 'draw';
 }
 
+export function determineWinner66(playerCards: PlayingCard[], opponentCards: PlayingCard[]): 'player' | 'opponent' | 'draw' {
+  const playerValue = calculateHandValue66(playerCards);
+  const opponentValue = calculateHandValue66(opponentCards);
+
+  // En yakın değer 66'ya kazanır, ama 66'yı geçmemiş olması lazım
+  const playerOver = playerValue > 66;
+  const opponentOver = opponentValue > 66;
+
+  if (!playerOver && !opponentOver) {
+    if (playerValue > opponentValue) return 'player';
+    if (opponentValue > playerValue) return 'opponent';
+    return 'draw';
+  }
+
+  if (!playerOver && opponentOver) return 'player';
+  if (!opponentOver && playerOver) return 'opponent';
+  
+  // Her ikisi de 66'yı geçerse en az geçen kazanır
+  if (playerValue < opponentValue) return 'player';
+  if (opponentValue < playerValue) return 'opponent';
+  return 'draw';
+}
+
 export function dealCards(deck: PlayingCard[], count: number): { cards: PlayingCard[]; remainingDeck: PlayingCard[] } {
   const cards = deck.slice(0, count).map(card => ({ ...card, faceUp: true }));
   const remainingDeck = deck.slice(count);
@@ -160,11 +189,38 @@ export function aiDecision(cards: PlayingCard[], difficulty: 'easy' | 'medium' |
   return 'draw';
 }
 
-export function initializeGame(playerName: string = 'Player'): GameState {
+export function aiDecision66(cards: PlayingCard[], difficulty: 'easy' | 'medium' | 'hard' = 'medium'): 'draw' | 'stand' {
+  const currentValue = calculateHandValue66(cards);
+  
+  const thresholds = {
+    easy: 50,
+    medium: 55,
+    hard: 60,
+  };
+
+  const threshold = thresholds[difficulty];
+
+  if (currentValue >= threshold) {
+    return 'stand';
+  }
+
+  const randomFactor = Math.random();
+  if (difficulty === 'easy' && randomFactor < 0.3) {
+    return 'stand';
+  }
+  if (difficulty === 'hard' && randomFactor < 0.1) {
+    return 'draw';
+  }
+
+  return 'draw';
+}
+
+export function initializeGame(playerName: string = 'Player', gameType: 'oicho-kabu' | '66' = 'oicho-kabu'): GameState {
   const deck = createDeck();
   
   return {
     deck,
+    gameType,
     player: {
       name: playerName,
       cards: [],

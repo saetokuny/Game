@@ -19,8 +19,11 @@ import {
   dealCards,
   drawCard,
   calculateHandValue,
+  calculateHandValue66,
   determineWinner,
+  determineWinner66,
   aiDecision,
+  aiDecision66,
   PlayingCard,
 } from "@/utils/gameLogic";
 import { updateGameStats, getSettings, GameSettings } from "@/utils/storage";
@@ -29,17 +32,19 @@ import { t, Language } from "@/utils/localization";
 interface GameScreenProps {
   navigation: any;
   language?: Language;
+  route?: any;
 }
 
 type RoundResult = "player" | "opponent" | "draw" | null;
 
-export default function GameScreen({ navigation, language = "en" }: GameScreenProps) {
+export default function GameScreen({ navigation, language = "en", route }: GameScreenProps) {
   const { theme, isDark } = useTheme();
   const colors = isDark ? Colors.dark : Colors.light;
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
 
-  const [gameState, setGameState] = useState<GameState>(() => initializeGame());
+  const gameType = route?.params?.gameType || 'oicho-kabu';
+  const [gameState, setGameState] = useState<GameState>(() => initializeGame('Player', gameType as 'oicho-kabu' | '66'));
   const [showPauseModal, setShowPauseModal] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
   const [roundResult, setRoundResult] = useState<RoundResult>(null);

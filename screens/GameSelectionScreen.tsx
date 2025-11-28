@@ -33,7 +33,7 @@ export default function GameSelectionScreen({
   const handleStartGame = async () => {
     await saveGameType(selectedGame);
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    navigation.navigate("CardDeckSelection");
+    navigation.navigate("CardDeckSelection", { gameType: selectedGame });
   };
 
   const games = [
