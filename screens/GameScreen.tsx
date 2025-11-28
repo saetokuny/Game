@@ -369,145 +369,144 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
     }, 600);
   };
 
-  const runAITurn66 = () => {
+  const runAITurn66 = useCallback(() => {
     if (!gameState66) return;
     
-    // First turn: AI leads with a card
-    if (!gameState66.currentTrick.player && !gameState66.currentTrick.opponent) {
+    const processAIMove = (state: Game66State) => {
+      // First turn: AI leads with a card
+      if (!state.currentTrick.player && !state.currentTrick.opponent) {
+        setIsProcessing(true);
+        aiTimerRef.current = setTimeout(() => {
+          const aiCard = aiChooseCard66(state.opponent.hand, null, settings?.aiDifficulty || 'medium');
+          if (!aiCard) {
+            setIsProcessing(false);
+            return;
+          }
+
+          const newOpponentHand = state.opponent.hand.filter((c, idx) => {
+            return !(c.suit === aiCard.suit && c.rank === aiCard.rank && state.opponent.hand.indexOf(c) === idx);
+          });
+
+          let aiMarriageBonus = 0;
+          if (state.roundNumber > 1) {
+            aiMarriageBonus = calculateMarriageBonus(state.opponent.hand, aiCard, state.trump);
+          }
+
+          if (settings?.soundEnabled) {
+            audioSystem.playSound('cardPlay', settings.musicVolume);
+          }
+
+          setGameState66(prev => prev ? {
+            ...prev,
+            opponent: { ...prev.opponent, hand: newOpponentHand },
+            currentTrick: { player: null, opponent: aiCard },
+            opponentMarriageBonus: aiMarriageBonus,
+            gamePhase: 'playerTurn',
+          } : null);
+
+          setIsProcessing(false);
+        }, 800);
+        return;
+      }
+      
+      // Response turn: Player led, AI responds
+      if (!state.currentTrick.player) return;
+      if (state.currentTrick.opponent) return;
+      
       setIsProcessing(true);
+
       aiTimerRef.current = setTimeout(() => {
-        const aiCard = aiChooseCard66(gameState66.opponent.hand, null, settings?.aiDifficulty || 'medium');
+        const aiCard = aiChooseCard66(
+          state.opponent.hand,
+          state.currentTrick.player,
+          settings?.aiDifficulty || 'medium'
+        );
+
         if (!aiCard) {
           setIsProcessing(false);
           return;
-        }
-
-        const newOpponentHand = gameState66.opponent.hand.filter((c, idx) => {
-          return !(c.suit === aiCard.suit && c.rank === aiCard.rank && gameState66.opponent.hand.indexOf(c) === idx);
-        });
-
-        // Calculate marriage bonus for first move (if round > 1)
-        let aiMarriageBonus = 0;
-        if (gameState66.roundNumber > 1) {
-          aiMarriageBonus = calculateMarriageBonus(gameState66.opponent.hand, aiCard, gameState66.trump);
         }
 
         if (settings?.soundEnabled) {
           audioSystem.playSound('cardPlay', settings.musicVolume);
         }
 
+        const newOpponentHand = state.opponent.hand.filter((c, idx) => {
+          return !(c.suit === aiCard.suit && c.rank === aiCard.rank && state.opponent.hand.indexOf(c) === idx);
+        });
+
+        const winner = determineTrickWinner(state.currentTrick.player, aiCard, state.trump);
+        const trickCards = [state.currentTrick.player, aiCard];
+        const trickPoints = calculateTrickPoints(trickCards);
+        
+        let newPlayerScore = state.player.score;
+        let newOpponentScore = state.opponent.score;
+        let newPlayerTricks = state.player.tricksWon;
+        let newOpponentTricks = state.opponent.tricksWon;
+        
+        if (winner === 'player') {
+          newPlayerScore += trickPoints;
+          newPlayerTricks = [...newPlayerTricks, trickCards];
+        } else {
+          newOpponentScore += trickPoints;
+          newOpponentTricks = [...newOpponentTricks, trickCards];
+        }
+
+        const gameEnded66 = newPlayerScore >= 66 || newOpponentScore >= 66;
+        const nextPhase = gameEnded66 ? 'gameEnd' : (winner === 'player' ? 'playerTurn' : 'opponentTurn');
+
         setGameState66(prev => prev ? {
           ...prev,
-          opponent: { ...prev.opponent, hand: newOpponentHand },
-          currentTrick: { player: null, opponent: aiCard },
-          opponentMarriageBonus: aiMarriageBonus,
-          gamePhase: 'playerTurn',
+          opponent: { ...prev.opponent, hand: newOpponentHand, tricksWon: newOpponentTricks, score: newOpponentScore },
+          player: { ...prev.player, tricksWon: newPlayerTricks, score: newPlayerScore },
+          currentTrick: { player: state.currentTrick.player, opponent: aiCard },
+          trickWinner: winner,
+          lastTrickWinner: winner,
+          gamePhase: nextPhase,
         } : null);
 
         setIsProcessing(false);
+        
+        // Delay before clearing to let player see the cards, then refill hands
+        aiTimerRef.current = setTimeout(() => {
+          setGameState66(prev => {
+            if (!prev) return null;
+            
+            let refillDeck = prev.deck;
+            let aiNewHand = newOpponentHand;
+            if (prev.deck.length > 0) {
+              const { card: drawnCard, remainingDeck } = drawCard66(prev.deck);
+              if (drawnCard) {
+                aiNewHand = [...newOpponentHand, drawnCard];
+                refillDeck = remainingDeck;
+              }
+            }
+
+            let playerNewHand = prev.player.hand;
+            if (refillDeck.length > 0 && prev.player.hand.length < 6) {
+              const { card: drawnCard, remainingDeck } = drawCard66(refillDeck);
+              if (drawnCard) {
+                playerNewHand = [...prev.player.hand, drawnCard];
+                refillDeck = remainingDeck;
+              }
+            }
+
+            return {
+              ...prev,
+              currentTrick: { player: null, opponent: null },
+              gamePhase: nextPhase,
+              opponent: { ...prev.opponent, hand: aiNewHand },
+              player: { ...prev.player, hand: playerNewHand },
+              deck: refillDeck,
+            };
+          });
+          if (gameEnded66) setShowResultModal(true);
+        }, 1500);
       }, 800);
-      return;
-    }
-    
-    // Response turn: Player led, AI responds
-    if (!gameState66.currentTrick.player) return;
-    
-    // Prevent AI from playing twice (if opponent card already set)
-    if (gameState66.currentTrick.opponent) return;
-    
-    setIsProcessing(true);
+    };
 
-    aiTimerRef.current = setTimeout(() => {
-      const aiCard = aiChooseCard66(
-        gameState66.opponent.hand,
-        gameState66.currentTrick.player,
-        settings?.aiDifficulty || 'medium'
-      );
-
-      if (!aiCard) {
-        setIsProcessing(false);
-        return;
-      }
-
-      if (settings?.soundEnabled) {
-        audioSystem.playSound('cardPlay', settings.musicVolume);
-      }
-
-      const newOpponentHand = gameState66.opponent.hand.filter((c, idx) => {
-        return !(c.suit === aiCard.suit && c.rank === aiCard.rank && gameState66.opponent.hand.indexOf(c) === idx);
-      });
-
-      const winner = determineTrickWinner(gameState66.currentTrick.player, aiCard, gameState66.trump);
-      const trickCards = [gameState66.currentTrick.player, aiCard];
-      const trickPoints = calculateTrickPoints(trickCards);
-      
-      let newPlayerScore = gameState66.player.score;
-      let newOpponentScore = gameState66.opponent.score;
-      let newPlayerTricks = gameState66.player.tricksWon;
-      let newOpponentTricks = gameState66.opponent.tricksWon;
-      
-      if (winner === 'player') {
-        newPlayerScore += trickPoints;
-        newPlayerTricks = [...newPlayerTricks, trickCards];
-      } else {
-        newOpponentScore += trickPoints;
-        newOpponentTricks = [...newOpponentTricks, trickCards];
-      }
-
-      const gameEnded66 = newPlayerScore >= 66 || newOpponentScore >= 66;
-      const nextPhase = gameEnded66 ? 'gameEnd' : (winner === 'player' ? 'playerTurn' : 'opponentTurn');
-
-      setGameState66(prev => prev ? {
-        ...prev,
-        opponent: { ...prev.opponent, hand: newOpponentHand, tricksWon: newOpponentTricks, score: newOpponentScore },
-        player: { ...prev.player, tricksWon: newPlayerTricks, score: newPlayerScore },
-        currentTrick: { player: gameState66.currentTrick.player, opponent: aiCard },
-        trickWinner: winner,
-        lastTrickWinner: winner,
-        gamePhase: nextPhase,
-      } : null);
-
-      setIsProcessing(false);
-      
-      // Delay before clearing to let player see the cards, then refill hands
-      aiTimerRef.current = setTimeout(() => {
-        setGameState66(prev => {
-          if (!prev) return null;
-          
-          // Refill AI hand if deck available
-          let refillDeck = prev.deck;
-          let aiNewHand = newOpponentHand;
-          if (prev.deck.length > 0) {
-            const { card: drawnCard, remainingDeck } = drawCard66(prev.deck);
-            if (drawnCard) {
-              aiNewHand = [...newOpponentHand, drawnCard];
-              refillDeck = remainingDeck;
-            }
-          }
-
-          // Refill player hand if deck available
-          let playerNewHand = prev.player.hand;
-          if (refillDeck.length > 0 && prev.player.hand.length < 6) {
-            const { card: drawnCard, remainingDeck } = drawCard66(refillDeck);
-            if (drawnCard) {
-              playerNewHand = [...prev.player.hand, drawnCard];
-              refillDeck = remainingDeck;
-            }
-          }
-
-          return {
-            ...prev,
-            currentTrick: { player: null, opponent: null },
-            gamePhase: nextPhase,
-            opponent: { ...prev.opponent, hand: aiNewHand },
-            player: { ...prev.player, hand: playerNewHand },
-            deck: refillDeck,
-          };
-        });
-        if (gameEnded66) setShowResultModal(true);
-      }, 1500);
-    }, 800);
-  };
+    processAIMove(gameState66);
+  }, [gameState66, settings?.aiDifficulty, settings?.soundEnabled, settings?.musicVolume]);
 
   const finishRound = () => {
     if (gameType === '66') {

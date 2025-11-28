@@ -1,4 +1,5 @@
 import * as Haptics from 'expo-haptics';
+import { Audio } from 'expo-av';
 import { Platform } from 'react-native';
 
 export type MusicStyle = 'traditional' | 'modern' | 'ambient';
@@ -7,70 +8,94 @@ export type SoundEffect = 'cardPlay' | 'cardDraw' | 'cardWin' | 'cardLose';
 class AudioSystem {
   private currentVolume = 0.5;
   private musicEnabled = true;
+  private soundObjects: { [key: string]: Audio.Sound } = {};
+  private initialized = false;
 
   async initialize() {
-    // Audio setup if needed
+    if (this.initialized || Platform.OS === 'web') return;
+    
+    try {
+      await Audio.setAudioModeAsync({
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+      });
+      this.initialized = true;
+    } catch (e) {
+      console.log('Audio init skipped');
+    }
   }
 
   playBackgroundMusic(style: MusicStyle, volume: number = 0.5) {
     this.currentVolume = Math.max(0, Math.min(1, volume));
     this.musicEnabled = true;
     
-    // Play haptic feedback for music start
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
   }
 
-  playSound(effect: SoundEffect, volume: number = 0.5) {
+  async playSound(effect: SoundEffect, volume: number = 0.5) {
     if (Platform.OS === 'web') return;
     
     const effectVolume = volume * this.currentVolume;
+    if (effectVolume <= 0) return;
     
     switch (effect) {
       case 'cardPlay':
-        this.playCardPlaySound(effectVolume);
+        await this.playCardPlaySound(effectVolume);
         break;
       case 'cardDraw':
-        this.playCardDrawSound(effectVolume);
+        await this.playCardDrawSound(effectVolume);
         break;
       case 'cardWin':
-        this.playWinSound(effectVolume);
+        await this.playWinSound(effectVolume);
         break;
       case 'cardLose':
-        this.playLoseSound(effectVolume);
+        await this.playLoseSound(effectVolume);
         break;
     }
   }
 
-  private playCardPlaySound(volume: number) {
-    // Card play: quick, bright sound
-    if (volume > 0) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  private async playCardPlaySound(volume: number) {
+    try {
+      if (volume > 0) {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      }
+    } catch (e) {
+      // Fallback to haptics works
     }
   }
 
-  private playCardDrawSound(volume: number) {
-    // Card draw: softer, lower sound
-    if (volume > 0) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      setTimeout(() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }, 100);
+  private async playCardDrawSound(volume: number) {
+    try {
+      if (volume > 0) {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        setTimeout(async () => {
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }, 100);
+      }
+    } catch (e) {
+      // Fallback
     }
   }
 
-  private playWinSound(volume: number) {
-    // Win: sequence of haptics
-    if (volume > 0) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  private async playWinSound(volume: number) {
+    try {
+      if (volume > 0) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    } catch (e) {
+      // Fallback
     }
   }
 
-  private playLoseSound(volume: number) {
-    // Lose: warning haptic
-    if (volume > 0) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+  private async playLoseSound(volume: number) {
+    try {
+      if (volume > 0) {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      }
+    } catch (e) {
+      // Fallback
     }
   }
 
@@ -82,12 +107,19 @@ class AudioSystem {
     this.musicEnabled = enabled;
   }
 
-  stop() {
-    // Stop any playing audio
+  async stop() {
+    try {
+      for (const key in this.soundObjects) {
+        await this.soundObjects[key].stopAsync();
+      }
+    } catch (e) {
+      // Cleanup
+    }
   }
 
-  cleanup() {
-    // Cleanup resources
+  async cleanup() {
+    await this.stop();
+    this.soundObjects = {};
   }
 }
 
