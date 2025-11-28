@@ -745,56 +745,54 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
                   ]}
                 >
                   {['J', 'Q', 'K'].includes(card.rank) ? (
-                    <View style={[styles.card66, { backgroundColor: '#FFFFFF', borderColor: '#333333', borderWidth: 2, justifyContent: 'flex-start', paddingTop: 2 }]}>
-                      <View style={styles.card66TopLeft}>
-                        <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
-                          {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
-                        </ThemedText>
-                        <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                    <View style={[styles.card66, { backgroundColor: '#FFFFFF', borderColor: '#333333', borderWidth: 2 }]}>
+                      <View style={styles.cardCornerTop}>
+                        <ThemedText style={[styles.cardCornerRank, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
                           {card.rank}
                         </ThemedText>
+                        <ThemedText style={[styles.cardCornerSuit, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
+                          {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
+                        </ThemedText>
                       </View>
-                      {card.rank === 'J' && (
-                        <View style={[styles.faceCardFigure, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
-                          <View style={[styles.figureHead, { backgroundColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
-                          <View style={[styles.figureBody, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
+                      <View style={styles.faceCardCenter}>
+                        <View style={[styles.portraitFrame, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
+                          <View style={styles.portraitContent}>
+                            <ThemedText style={[styles.portraitRank, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
+                              {card.rank}
+                            </ThemedText>
+                          </View>
                         </View>
-                      )}
-                      {card.rank === 'Q' && (
-                        <View style={[styles.faceCardFigure, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
-                          <View style={[styles.figureHeadLarge, { backgroundColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
-                          <View style={[styles.figureCrown, { borderTopColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
-                        </View>
-                      )}
-                      {card.rank === 'K' && (
-                        <View style={[styles.faceCardFigure, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
-                          <View style={[styles.figureHeadLarge, { backgroundColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
-                          <View style={[styles.kingCrown, { borderTopColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
-                        </View>
-                      )}
-                      <ThemedText style={[styles.card66FaceRank, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000', marginTop: 1 }]}>
-                        {card.rank}
-                      </ThemedText>
+                      </View>
+                      <View style={[styles.cardCornerBottom, { transform: [{ rotate: '180deg' }] }]}>
+                        <ThemedText style={[styles.cardCornerRank, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
+                          {card.rank}
+                        </ThemedText>
+                        <ThemedText style={[styles.cardCornerSuit, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
+                          {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
+                        </ThemedText>
+                      </View>
                     </View>
                   ) : (
-                    <View style={[styles.card66, { backgroundColor: '#FFFFFF', borderColor: '#333333', borderWidth: 2 }]}>
-                      <View style={styles.card66TopLeft}>
-                        <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
-                          {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
-                        </ThemedText>
-                        <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                    <View style={[styles.card66, { backgroundColor: '#FFFFFF', borderColor: '#333333', borderWidth: 2, padding: 3 }]}>
+                      <View style={styles.cardCornerTop}>
+                        <ThemedText style={[styles.cardCornerRank, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
                           {card.rank}
+                        </ThemedText>
+                        <ThemedText style={[styles.cardCornerSuit, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
+                          {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
                         </ThemedText>
                       </View>
-                      <ThemedText style={[styles.card66Middle, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
-                        {card.rank}
-                      </ThemedText>
-                      <View style={[styles.card66BottomRight, { transform: [{ rotate: '180deg' }] }]}>
-                        <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
-                          {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
+                      <View style={styles.numericCardCenter}>
+                        <ThemedText style={[styles.numericCardRank, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
+                          {card.rank === 'A' ? 'A' : card.rank}
                         </ThemedText>
-                        <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                      </View>
+                      <View style={[styles.cardCornerBottom, { transform: [{ rotate: '180deg' }] }]}>
+                        <ThemedText style={[styles.cardCornerRank, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
                           {card.rank}
+                        </ThemedText>
+                        <ThemedText style={[styles.cardCornerSuit, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
+                          {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
                         </ThemedText>
                       </View>
                     </View>
@@ -1158,81 +1156,61 @@ const styles = StyleSheet.create({
   card66: {
     width: 50,
     height: 85,
-    borderRadius: 4,
+    borderRadius: 3,
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1.5,
-    borderColor: '#000000',
-    paddingVertical: 3,
+    borderColor: '#333333',
+    paddingVertical: 2,
     paddingHorizontal: 2,
   },
-  card66Text: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  card66TopLeft: {
+  cardCornerTop: {
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  card66Corner: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    lineHeight: 12,
-  },
-  card66Middle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  card66BottomRight: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  card66FaceCardPattern: {
-    flex: 1,
+    justifyContent: 'flex-start',
     width: '100%',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: 2,
   },
-  faceCardFigure: {
+  cardCornerBottom: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    width: '100%',
+  },
+  cardCornerRank: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    lineHeight: 11,
+  },
+  cardCornerSuit: {
+    fontSize: 8,
+    lineHeight: 10,
+  },
+  faceCardCenter: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  portraitFrame: {
+    borderWidth: 1,
+    borderRadius: 2,
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    backgroundColor: '#F8F8F8',
+  },
+  portraitContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 28,
   },
-  figureHead: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginBottom: 2,
+  portraitRank: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
-  figureHeadLarge: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginBottom: 2,
+  numericCardCenter: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  figureBody: {
-    width: 8,
-    height: 10,
-    borderWidth: 1,
-    borderRadius: 1,
-  },
-  figureCrown: {
-    width: 14,
-    height: 6,
-    borderTopWidth: 2,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-  },
-  kingCrown: {
-    width: 14,
-    height: 8,
-    borderTopWidth: 2,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-  },
-  card66FaceRank: {
-    fontSize: 14,
+  numericCardRank: {
+    fontSize: 18,
     fontWeight: 'bold',
   },
   scoreBoard66: {
