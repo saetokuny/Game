@@ -1,0 +1,693 @@
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { StyleSheet, View, Modal, Pressable, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useHeaderHeight } from "@react-navigation/elements";
+import { Feather } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { PlayingCardComponent } from "@/components/PlayingCard";
+import { GameButton } from "@/components/GameButton";
+import { ScoreDisplay } from "@/components/ScoreDisplay";
+import { useTheme } from "@/hooks/useTheme";
+import { Spacing, Colors, BorderRadius } from "@/constants/theme";
+import {
+  GameState,
+  initializeGame,
+  createDeck,
+  dealCards,
+  drawCard,
+  calculateHandValue,
+  determineWinner,
+  aiDecision,
+  PlayingCard,
+} from "@/utils/gameLogic";
+import { updateGameStats, getSettings, GameSettings } from "@/utils/storage";
+
+interface GameScreenProps {
+  navigation: any;
+}
+
+type RoundResult = "player" | "opponent" | "draw" | null;
+
+export default function GameScreen({ navigation }: GameScreenProps) {
+  const { theme, isDark } = useTheme();
+  const colors = isDark ? Colors.dark : Colors.light;
+  const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
+
+  const [gameState, setGameState] = useState<GameState>(() => initializeGame());
+  const [showPauseModal, setShowPauseModal] = useState(false);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [roundResult, setRoundResult] = useState<RoundResult>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [settings, setSettings] = useState<GameSettings | null>(null);
+  const [gameEnded, setGameEnded] = useState(false);
+
+  const aiTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      const s = await getSettings();
+      setSettings(s);
+    };
+    loadSettings();
+  }, []);
+
+  useEffect(() => {
+    if (gameState.gamePhase === "dealing") {
+      startNewRound();
+    }
+  }, []);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerTitle: `Round ${gameState.currentRound}`,
+    });
+  }, [gameState.currentRound, navigation]);
+
+  useEffect(() => {
+    if (gameState.gamePhase === "opponentTurn" && !isProcessing) {
+      runAITurn();
+    }
+  }, [gameState.gamePhase, isProcessing]);
+
+  useEffect(() => {
+    return () => {
+      if (aiTimerRef.current) {
+        clearTimeout(aiTimerRef.current);
+      }
+    };
+  }, []);
+
+  const triggerHaptic = async (style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Light) => {
+    if (settings?.vibrationEnabled && Platform.OS !== "web") {
+      await Haptics.impactAsync(style);
+    }
+  };
+
+  const startNewRound = () => {
+    const deck = createDeck();
+    const { cards: playerCards, remainingDeck: deck1 } = dealCards(deck, 2);
+    const { cards: opponentCards, remainingDeck: finalDeck } = dealCards(deck1, 2);
+
+    const opponentCardsHidden = opponentCards.map((c) => ({ ...c, faceUp: false }));
+
+    setGameState((prev) => ({
+      ...prev,
+      deck: finalDeck,
+      player: {
+        ...prev.player,
+        cards: playerCards,
+        hasFolded: false,
+        hasStood: false,
+      },
+      opponent: {
+        ...prev.opponent,
+        cards: opponentCardsHidden,
+        hasFolded: false,
+        hasStood: false,
+      },
+      gamePhase: "playerTurn",
+    }));
+
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
+  };
+
+  const handleDraw = async () => {
+    if (gameState.gamePhase !== "playerTurn" || isProcessing) return;
+
+    setIsProcessing(true);
+    await triggerHaptic();
+
+    const { card, remainingDeck } = drawCard(gameState.deck);
+    if (!card) {
+      setIsProcessing(false);
+      return;
+    }
+
+    setGameState((prev) => ({
+      ...prev,
+      deck: remainingDeck,
+      player: {
+        ...prev.player,
+        cards: [...prev.player.cards, card],
+      },
+    }));
+
+    setTimeout(() => {
+      setIsProcessing(false);
+    }, 300);
+  };
+
+  const handleStand = async () => {
+    if (gameState.gamePhase !== "playerTurn" || isProcessing) return;
+
+    await triggerHaptic();
+
+    setGameState((prev) => ({
+      ...prev,
+      player: { ...prev.player, hasStood: true },
+      gamePhase: "opponentTurn",
+    }));
+  };
+
+  const runAITurn = () => {
+    setIsProcessing(true);
+
+    const revealedOpponentCards = gameState.opponent.cards.map((c) => ({
+      ...c,
+      faceUp: true,
+    }));
+
+    setGameState((prev) => ({
+      ...prev,
+      opponent: { ...prev.opponent, cards: revealedOpponentCards },
+    }));
+
+    const aiLoop = (currentCards: PlayingCard[], currentDeck: PlayingCard[]) => {
+      const decision = aiDecision(currentCards, settings?.aiDifficulty || "medium");
+
+      if (decision === "draw" && currentDeck.length > 0) {
+        aiTimerRef.current = setTimeout(() => {
+          const { card, remainingDeck } = drawCard(currentDeck);
+          if (card) {
+            const newCards = [...currentCards, card];
+            setGameState((prev) => ({
+              ...prev,
+              deck: remainingDeck,
+              opponent: { ...prev.opponent, cards: newCards },
+            }));
+            triggerHaptic();
+            aiLoop(newCards, remainingDeck);
+          } else {
+            finishRound();
+          }
+        }, 800);
+      } else {
+        aiTimerRef.current = setTimeout(() => {
+          finishRound();
+        }, 500);
+      }
+    };
+
+    setTimeout(() => {
+      aiLoop(revealedOpponentCards, gameState.deck);
+    }, 600);
+  };
+
+  const finishRound = () => {
+    const playerValue = calculateHandValue(gameState.player.cards);
+    const opponentCards = gameState.opponent.cards.map((c) => ({ ...c, faceUp: true }));
+    const opponentValue = calculateHandValue(opponentCards);
+
+    const result = determineWinner(gameState.player.cards, opponentCards);
+    setRoundResult(result);
+
+    let newPlayerWins = gameState.playerTotalWins;
+    let newOpponentWins = gameState.opponentTotalWins;
+    let newDraws = gameState.draws;
+
+    if (result === "player") {
+      newPlayerWins += 1;
+    } else if (result === "opponent") {
+      newOpponentWins += 1;
+    } else {
+      newDraws += 1;
+    }
+
+    const isLastRound = gameState.currentRound >= gameState.maxRounds;
+
+    setGameState((prev) => ({
+      ...prev,
+      opponent: { ...prev.opponent, cards: opponentCards },
+      playerTotalWins: newPlayerWins,
+      opponentTotalWins: newOpponentWins,
+      draws: newDraws,
+      gamePhase: isLastRound ? "gameEnd" : "roundEnd",
+    }));
+
+    if (isLastRound) {
+      setGameEnded(true);
+      const finalResult =
+        newPlayerWins > newOpponentWins
+          ? "win"
+          : newPlayerWins < newOpponentWins
+          ? "loss"
+          : "draw";
+      updateGameStats(finalResult);
+    }
+
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Heavy);
+    setShowResultModal(true);
+    setIsProcessing(false);
+  };
+
+  const handleNextRound = () => {
+    setShowResultModal(false);
+    setRoundResult(null);
+
+    setGameState((prev) => ({
+      ...prev,
+      currentRound: prev.currentRound + 1,
+      gamePhase: "dealing",
+    }));
+
+    setTimeout(startNewRound, 300);
+  };
+
+  const handlePlayAgain = () => {
+    setShowResultModal(false);
+    setRoundResult(null);
+    setGameEnded(false);
+    const newGame = initializeGame();
+    setGameState(newGame);
+    setTimeout(startNewRound, 300);
+  };
+
+  const handleQuit = () => {
+    setShowPauseModal(false);
+    navigation.goBack();
+  };
+
+  const playerValue = calculateHandValue(gameState.player.cards);
+  const opponentValue = calculateHandValue(
+    gameState.opponent.cards.filter((c) => c.faceUp)
+  );
+
+  const getResultTitle = () => {
+    if (gameEnded) {
+      const { playerTotalWins, opponentTotalWins } = gameState;
+      if (playerTotalWins > opponentTotalWins) return "You Win the Game!";
+      if (opponentTotalWins > playerTotalWins) return "AI Wins the Game";
+      return "Game is a Draw";
+    }
+    if (roundResult === "player") return "You Win!";
+    if (roundResult === "opponent") return "AI Wins";
+    return "Draw";
+  };
+
+  const getResultColor = () => {
+    if (gameEnded) {
+      const { playerTotalWins, opponentTotalWins } = gameState;
+      if (playerTotalWins > opponentTotalWins) return colors.success;
+      if (opponentTotalWins > playerTotalWins) return colors.error;
+      return colors.draw;
+    }
+    if (roundResult === "player") return colors.success;
+    if (roundResult === "opponent") return colors.error;
+    return colors.draw;
+  };
+
+  return (
+    <ThemedView
+      style={[
+        styles.container,
+        {
+          paddingTop: headerHeight + Spacing.lg,
+          paddingBottom: insets.bottom + Spacing.xl,
+        },
+      ]}
+    >
+      <Pressable
+        onPress={() => setShowPauseModal(true)}
+        style={({ pressed }) => [
+          styles.pauseButton,
+          {
+            backgroundColor: colors.backgroundSecondary,
+            opacity: pressed ? 0.7 : 1,
+            top: headerHeight + Spacing.sm,
+          },
+        ]}
+      >
+        <Feather name="pause" size={24} color={theme.text} />
+      </Pressable>
+
+      <View style={styles.gameArea}>
+        <View style={styles.opponentSection}>
+          <ThemedText style={styles.playerLabel}>AI</ThemedText>
+          <View style={styles.cardsRow}>
+            {gameState.opponent.cards.map((card, index) => (
+              <View key={`opp-${index}`} style={styles.cardWrapper}>
+                <PlayingCardComponent card={card} size="medium" />
+              </View>
+            ))}
+          </View>
+          {gameState.opponent.cards.some((c) => c.faceUp) ? (
+            <ScoreDisplay
+              value={calculateHandValue(gameState.opponent.cards)}
+              label="Score"
+              showHandName
+              isWinner={roundResult === "opponent"}
+              isLoser={roundResult === "player"}
+              isDraw={roundResult === "draw"}
+            />
+          ) : null}
+        </View>
+
+        <View style={[styles.tableCenter, { backgroundColor: colors.cardTable }]}>
+          <View style={styles.roundInfo}>
+            <ThemedText style={styles.roundText} lightColor="#FFFFFF" darkColor="#FFFFFF">
+              Round {gameState.currentRound} of {gameState.maxRounds}
+            </ThemedText>
+            <View style={styles.scoreBoard}>
+              <ThemedText style={styles.scoreBoardText} lightColor="#D4AF37" darkColor="#D4AF37">
+                You: {gameState.playerTotalWins}
+              </ThemedText>
+              <ThemedText style={styles.scoreBoardText} lightColor="#FFFFFF" darkColor="#FFFFFF">
+                {" - "}
+              </ThemedText>
+              <ThemedText style={styles.scoreBoardText} lightColor="#D4AF37" darkColor="#D4AF37">
+                AI: {gameState.opponentTotalWins}
+              </ThemedText>
+            </View>
+          </View>
+          <View style={styles.deckPile}>
+            <View style={[styles.deckCard, { backgroundColor: colors.primary }]}>
+              <Feather name="layers" size={24} color="#D4AF37" />
+            </View>
+            <ThemedText style={styles.deckCount} lightColor="#FFFFFF" darkColor="#FFFFFF">
+              {gameState.deck.length}
+            </ThemedText>
+          </View>
+        </View>
+
+        <View style={styles.playerSection}>
+          <ScoreDisplay
+            value={playerValue}
+            label="Your Score"
+            showHandName
+            isWinner={roundResult === "player"}
+            isLoser={roundResult === "opponent"}
+            isDraw={roundResult === "draw"}
+          />
+          <View style={styles.cardsRow}>
+            {gameState.player.cards.map((card, index) => (
+              <View key={`player-${index}`} style={styles.cardWrapper}>
+                <PlayingCardComponent card={card} size="medium" />
+              </View>
+            ))}
+          </View>
+          <ThemedText style={styles.playerLabel}>You</ThemedText>
+        </View>
+      </View>
+
+      <View style={styles.actionBar}>
+        <GameButton
+          title="Draw"
+          onPress={handleDraw}
+          variant="primary"
+          size="medium"
+          disabled={
+            gameState.gamePhase !== "playerTurn" ||
+            isProcessing ||
+            gameState.deck.length === 0
+          }
+          style={styles.actionButton}
+        />
+        <GameButton
+          title="Stand"
+          onPress={handleStand}
+          variant="accent"
+          size="medium"
+          disabled={gameState.gamePhase !== "playerTurn" || isProcessing}
+          style={styles.actionButton}
+        />
+      </View>
+
+      <Modal
+        visible={showPauseModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowPauseModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <ThemedView style={styles.pauseModalContent}>
+            <ThemedText style={styles.modalTitle}>Game Paused</ThemedText>
+            <GameButton
+              title="Resume"
+              onPress={() => setShowPauseModal(false)}
+              variant="primary"
+              style={styles.modalButton}
+            />
+            <GameButton
+              title="How to Play"
+              onPress={() => {
+                setShowPauseModal(false);
+                navigation.navigate("Main", { screen: "Rules" });
+              }}
+              variant="accent"
+              style={styles.modalButton}
+            />
+            <GameButton
+              title="Quit Game"
+              onPress={handleQuit}
+              variant="danger"
+              style={styles.modalButton}
+            />
+          </ThemedView>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showResultModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {}}
+      >
+        <View style={styles.modalOverlay}>
+          <ThemedView style={styles.resultModalContent}>
+            <ThemedText
+              style={[styles.resultTitle, { color: getResultColor() }]}
+              lightColor={getResultColor()}
+              darkColor={getResultColor()}
+            >
+              {getResultTitle()}
+            </ThemedText>
+
+            {roundResult === "draw" && !gameEnded ? (
+              <ThemedText style={styles.noPointsText}>
+                No Points Awarded
+              </ThemedText>
+            ) : null}
+
+            <View style={styles.resultScores}>
+              <View style={styles.resultScoreItem}>
+                <ThemedText style={styles.resultScoreLabel}>You</ThemedText>
+                <ThemedText style={styles.resultScoreValue}>{playerValue}</ThemedText>
+              </View>
+              <ThemedText style={styles.resultVs}>vs</ThemedText>
+              <View style={styles.resultScoreItem}>
+                <ThemedText style={styles.resultScoreLabel}>AI</ThemedText>
+                <ThemedText style={styles.resultScoreValue}>
+                  {calculateHandValue(gameState.opponent.cards)}
+                </ThemedText>
+              </View>
+            </View>
+
+            {gameEnded ? (
+              <View style={styles.finalScore}>
+                <ThemedText style={styles.finalScoreText}>
+                  Final Score: {gameState.playerTotalWins} - {gameState.opponentTotalWins}
+                </ThemedText>
+                {gameState.draws > 0 ? (
+                  <ThemedText style={[styles.drawsText, { color: colors.textSecondary }]}>
+                    ({gameState.draws} draws)
+                  </ThemedText>
+                ) : null}
+              </View>
+            ) : null}
+
+            <GameButton
+              title={gameEnded ? "Play Again" : "Next Round"}
+              onPress={gameEnded ? handlePlayAgain : handleNextRound}
+              variant="primary"
+              style={styles.modalButton}
+            />
+            <GameButton
+              title="Main Menu"
+              onPress={handleQuit}
+              variant="secondary"
+              style={styles.modalButton}
+            />
+          </ThemedView>
+        </View>
+      </Modal>
+    </ThemedView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: Spacing.lg,
+  },
+  pauseButton: {
+    position: "absolute",
+    right: Spacing.lg,
+    zIndex: 10,
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.sm,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  gameArea: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  opponentSection: {
+    alignItems: "center",
+    paddingTop: Spacing["3xl"],
+  },
+  playerSection: {
+    alignItems: "center",
+  },
+  playerLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginVertical: Spacing.sm,
+    opacity: 0.7,
+  },
+  cardsRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginVertical: Spacing.md,
+    minHeight: 100,
+  },
+  cardWrapper: {
+    marginHorizontal: Spacing.xs,
+  },
+  tableCenter: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.xl,
+    paddingHorizontal: Spacing["2xl"],
+    borderRadius: BorderRadius.lg,
+    marginVertical: Spacing.lg,
+  },
+  roundInfo: {
+    alignItems: "center",
+    marginBottom: Spacing.md,
+  },
+  roundText: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  scoreBoard: {
+    flexDirection: "row",
+    marginTop: Spacing.xs,
+  },
+  scoreBoardText: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  deckPile: {
+    alignItems: "center",
+  },
+  deckCard: {
+    width: 60,
+    height: 85,
+    borderRadius: BorderRadius.xs,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#D4AF37",
+  },
+  deckCount: {
+    fontSize: 12,
+    marginTop: Spacing.xs,
+    opacity: 0.8,
+  },
+  actionBar: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: Spacing.lg,
+    paddingTop: Spacing.lg,
+  },
+  actionButton: {
+    flex: 1,
+    maxWidth: 150,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: Spacing.xl,
+  },
+  pauseModalContent: {
+    width: "100%",
+    maxWidth: 320,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing["2xl"],
+    alignItems: "center",
+  },
+  resultModalContent: {
+    width: "100%",
+    maxWidth: 320,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing["2xl"],
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    marginBottom: Spacing.xl,
+  },
+  modalButton: {
+    width: "100%",
+    marginTop: Spacing.md,
+  },
+  resultTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    marginBottom: Spacing.md,
+    textAlign: "center",
+  },
+  noPointsText: {
+    fontSize: 16,
+    opacity: 0.7,
+    marginBottom: Spacing.lg,
+  },
+  resultScores: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: Spacing.xl,
+  },
+  resultScoreItem: {
+    alignItems: "center",
+    paddingHorizontal: Spacing.xl,
+  },
+  resultScoreLabel: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginBottom: Spacing.xs,
+  },
+  resultScoreValue: {
+    fontSize: 36,
+    fontWeight: "700",
+  },
+  resultVs: {
+    fontSize: 16,
+    opacity: 0.5,
+  },
+  finalScore: {
+    alignItems: "center",
+    marginBottom: Spacing.lg,
+  },
+  finalScoreText: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  drawsText: {
+    fontSize: 14,
+    marginTop: Spacing.xs,
+  },
+});
