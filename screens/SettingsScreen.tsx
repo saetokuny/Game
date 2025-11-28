@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Switch, Pressable, Alert, TextInput } from "react-native";
+import { StyleSheet, View, Switch, Pressable, Alert, TextInput, ScrollView } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import Slider from "@react-native-community/slider";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -35,6 +36,9 @@ export default function SettingsScreen() {
     vibrationEnabled: true,
     animationSpeed: "normal",
     aiDifficulty: "medium",
+    musicEnabled: true,
+    musicVolume: 0.5,
+    selectedMusic: "traditional",
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -204,6 +208,66 @@ export default function SettingsScreen() {
 
         <View style={styles.settingGroup}>
           <View style={styles.settingInfo}>
+            <Feather name="music" size={20} color={theme.text} />
+            <ThemedText style={styles.settingLabel}>Müzik</ThemedText>
+          </View>
+          <View style={styles.settingRow}>
+            <ThemedText style={styles.label}>Müzik Aç/Kapat</ThemedText>
+            <Switch
+              value={settings.musicEnabled}
+              onValueChange={(value) => handleSettingsChange({ musicEnabled: value })}
+              trackColor={{ false: colors.backgroundTertiary, true: colors.primary }}
+            />
+          </View>
+          {settings.musicEnabled && (
+            <>
+              <View style={styles.volumeContainer}>
+                <ThemedText style={styles.label}>Ses Seviyesi: {Math.round(settings.musicVolume * 100)}%</ThemedText>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0}
+                  maximumValue={1}
+                  value={settings.musicVolume}
+                  onValueChange={(value) => handleSettingsChange({ musicVolume: value })}
+                  minimumTrackTintColor={colors.primary}
+                  maximumTrackTintColor={colors.backgroundTertiary}
+                />
+              </View>
+              <View style={styles.musicButtons}>
+                {(["traditional", "peaceful", "energetic"] as const).map((music) => (
+                  <Pressable
+                    key={music}
+                    onPress={() => handleSettingsChange({ selectedMusic: music })}
+                    style={({ pressed }) => [
+                      styles.musicButton,
+                      {
+                        backgroundColor:
+                          settings.selectedMusic === music
+                            ? colors.primary
+                            : colors.backgroundSecondary,
+                        opacity: pressed ? 0.8 : 1,
+                      },
+                    ]}
+                  >
+                    <ThemedText
+                      style={[
+                        styles.musicButtonText,
+                        {
+                          color: settings.selectedMusic === music ? "#FFFFFF" : theme.text,
+                        },
+                      ]}
+                    >
+                      {music === "traditional" ? "Geleneksel" : music === "peaceful" ? "Huzurlu" : "Enerjik"}
+                    </ThemedText>
+                  </Pressable>
+                ))}
+              </View>
+            </>
+          )}
+        </View>
+
+        <View style={styles.settingGroup}>
+          <View style={styles.settingInfo}>
             <Feather name="cpu" size={20} color={theme.text} />
             <ThemedText style={styles.settingLabel}>AI Difficulty</ThemedText>
           </View>
@@ -315,6 +379,30 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: "rgba(0, 0, 0, 0.05)",
+  },
+  volumeContainer: {
+    paddingVertical: Spacing.md,
+  },
+  slider: {
+    height: 40,
+    marginVertical: Spacing.md,
+  },
+  musicButtons: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+  },
+  musicButton: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  musicButtonText: {
+    fontSize: 12,
+    fontWeight: "600",
   },
   optionButtons: {
     flexDirection: "row",

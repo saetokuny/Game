@@ -35,6 +35,7 @@ import {
 } from "@/utils/gameLogic66";
 import { updateGameStats, getSettings, GameSettings } from "@/utils/storage";
 import { t, Language } from "@/utils/localization";
+import { playMusic, stopMusic, setVolume } from "@/utils/musicPlayer";
 
 interface GameScreenProps {
   navigation: any;
@@ -91,12 +92,20 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
   }, [gameState.gamePhase, gameState66?.gamePhase, isProcessing]);
 
   useEffect(() => {
+    const startMusic = async () => {
+      if (settings?.musicEnabled) {
+        await playMusic(settings.selectedMusic, settings.musicVolume);
+      }
+    };
+    startMusic();
+
     return () => {
       if (aiTimerRef.current) {
         clearTimeout(aiTimerRef.current);
       }
+      stopMusic();
     };
-  }, []);
+  }, [settings?.musicEnabled, settings?.selectedMusic, settings?.musicVolume]);
 
   const triggerHaptic = async (style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Light) => {
     if (settings?.vibrationEnabled && Platform.OS !== "web") {
