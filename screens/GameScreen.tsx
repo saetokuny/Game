@@ -164,19 +164,24 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
   };
 
   const playCard66 = async (card: Card66) => {
-    if (!gameState66 || isProcessing) return;
+    if (!gameState66 || isProcessing || gameState66.gamePhase !== 'playerTurn') return;
     setIsProcessing(true);
     await triggerHaptic();
 
-    const newHand = gameState66.player.hand.filter(c => c !== card);
+    const newHand = gameState66.player.hand.filter((c, idx) => {
+      return !(c.suit === card.suit && c.rank === card.rank && gameState66.player.hand.indexOf(c) === idx);
+    });
+
     setGameState66(prev => prev ? {
       ...prev,
-      currentTrick: { ...prev.currentTrick, player: card },
+      currentTrick: { player: card, opponent: null },
       player: { ...prev.player, hand: newHand },
       gamePhase: 'opponentTurn',
     } : null);
 
-    setTimeout(() => setIsProcessing(false), 300);
+    setTimeout(() => {
+      setIsProcessing(false);
+    }, 300);
   };
 
   const handleStand = async () => {
@@ -493,18 +498,23 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
               {gameState66.player.hand.map((card, index) => (
                 <Pressable
                   key={`player-${index}`}
-                  onPress={() => playCard66(card)}
+                  onPress={() => {
+                    if (gameState66?.gamePhase === 'playerTurn' && !isProcessing) {
+                      playCard66(card);
+                    }
+                  }}
                   disabled={gameState66.gamePhase !== 'playerTurn' || isProcessing}
                   style={({ pressed }) => [
                     styles.cardWrapper,
                     {
                       opacity: pressed ? 0.7 : gameState66.gamePhase === 'playerTurn' ? 1 : 0.5,
+                      transform: [{ scale: pressed && gameState66?.gamePhase === 'playerTurn' ? 0.95 : 1 }],
                     },
                   ]}
                 >
                   <View style={[styles.card66, { backgroundColor: colors.primary }]}>
                     <ThemedText style={styles.card66Rank}>{card.rank}</ThemedText>
-                    <ThemedText style={styles.card66Suit}>{card.suit.charAt(0).toUpperCase()}</ThemedText>
+                    <ThemedText style={styles.card66Suit}>{card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}</ThemedText>
                   </View>
                 </Pressable>
               ))}

@@ -193,7 +193,7 @@ export function initializeGame66(): Game66State {
     currentTrick: { player: null, opponent: null },
     trickWinner: null,
     phase: 'playing',
-    gamePhase: 'opponentTurn', // Opponent leads first
+    gamePhase: 'playerTurn', // Player leads first - play card first!
     roundNumber: 1,
     stockClosed: false,
   };
