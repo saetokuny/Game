@@ -33,7 +33,15 @@ export default function GameSelectionScreen({
   const handleStartGame = async () => {
     await saveGameType(selectedGame);
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    navigation.navigate("CardDeckSelection", { gameType: selectedGame });
+    
+    // 66 oyunu direkt Avrupa kartlarıyla başla
+    if (selectedGame === "66") {
+      await saveCardDeck("european");
+      navigation.navigate("Game", { gameType: selectedGame });
+    } else {
+      // Oicho-Kabu için deck seçim ekranına git
+      navigation.navigate("CardDeckSelection", { gameType: selectedGame });
+    }
   };
 
   const games = [
