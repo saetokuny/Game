@@ -453,7 +453,7 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
         }
 
         const gameEnded66 = newPlayerScore >= 66 || newOpponentScore >= 66;
-        const nextPhase = gameEnded66 ? 'gameEnd' : (winner === 'player' ? 'playerTurn' : 'opponentTurn');
+        const nextPhase = gameEnded66 ? 'gameEnd' : (winner === 'player' ? 'playerTurn' : 'trickResult');
 
         setGameState66(prev => prev ? {
           ...prev,
@@ -471,6 +471,14 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
         aiTimerRef.current = setTimeout(() => {
           setGameState66(prev => {
             if (!prev) return null;
+            
+            // Don't refill if game already ended
+            if (gameEnded66) {
+              return {
+                ...prev,
+                gamePhase: 'gameEnd',
+              };
+            }
             
             let refillDeck = prev.deck;
             let aiNewHand = newOpponentHand;
@@ -491,10 +499,13 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
               }
             }
 
+            // After refill, set phase based on who won trick
+            const refillPhase = winner === 'player' ? 'playerTurn' : 'opponentTurn';
+
             return {
               ...prev,
               currentTrick: { player: null, opponent: null },
-              gamePhase: nextPhase,
+              gamePhase: refillPhase,
               opponent: { ...prev.opponent, hand: aiNewHand },
               player: { ...prev.player, hand: playerNewHand },
               deck: refillDeck,
