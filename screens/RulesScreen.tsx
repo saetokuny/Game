@@ -6,6 +6,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ScreenScrollView } from "@/components/ScreenScrollView";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, Colors, BorderRadius } from "@/constants/theme";
+import { t, Language } from "@/utils/localization";
 
 interface RuleSectionProps {
   title: string;
@@ -30,28 +31,29 @@ function RuleSection({ title, icon, children }: RuleSectionProps) {
   );
 }
 
-export default function RulesScreen() {
+interface RulesScreenProps {
+  language?: Language;
+}
+
+export default function RulesScreen({ language = "en" }: RulesScreenProps) {
   const { isDark } = useTheme();
   const colors = isDark ? Colors.dark : Colors.light;
 
   return (
     <ScreenScrollView>
       <ThemedText style={styles.intro}>
-        Oicho-Kabu is a traditional Japanese card game. The goal is to get a hand value 
-        as close to 9 as possible.
+        {language === 'en' ? 'Oicho-Kabu is a traditional Japanese card game. The goal is to get a hand value as close to 9 as possible.' : 'Oicho-Kabu geleneksel bir Japon kart oyunudur. Amaç, el değerini 9\'a mümkün olduğunca yakın almaktır.'}
       </ThemedText>
 
-      <RuleSection title="Objective" icon="target">
+      <RuleSection title={t('objective', language)} icon="target">
         <ThemedText style={styles.text}>
-          The objective is to have a hand with a value closest to 9. The player with 
-          the higher hand value wins the round. If both players have the same value, 
-          the round is a draw and no points are awarded.
+          {t('objectiveDesc', language)}
         </ThemedText>
       </RuleSection>
 
-      <RuleSection title="Card Values" icon="layers">
+      <RuleSection title={t('cardValues', language)} icon="layers">
         <ThemedText style={styles.text}>
-          Cards 1-10 are used in this game. Each card is worth its face value.
+          {t('cardValuesDesc', language)}
         </ThemedText>
         <View style={[styles.valueTable, { backgroundColor: colors.backgroundSecondary }]}>
           <View style={styles.valueRow}>
@@ -72,12 +74,12 @@ export default function RulesScreen() {
         </View>
       </RuleSection>
 
-      <RuleSection title="Calculating Hand Value" icon="hash">
+      <RuleSection title={t('calculatingHandValue', language)} icon="hash">
         <ThemedText style={styles.text}>
-          Add up all your card values. Only the last digit counts as your hand value.
+          {t('handValueDesc', language)}
         </ThemedText>
         <View style={[styles.exampleBox, { backgroundColor: colors.backgroundSecondary }]}>
-          <ThemedText style={styles.exampleTitle}>Example:</ThemedText>
+          <ThemedText style={styles.exampleTitle}>{t('example', language)}:</ThemedText>
           <ThemedText style={styles.exampleText}>
             Cards: 7 + 5 = 12
           </ThemedText>
