@@ -25,7 +25,9 @@
     },
     "web": {
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "preferRelatedApplications": false,
+      "bundleUrl": "https://oicho-kabu.replit.dev"
     },
     "plugins": [
       [
