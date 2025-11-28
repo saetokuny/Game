@@ -519,13 +519,34 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
                   ]}
                 >
                   {['J', 'Q', 'K'].includes(card.rank) ? (
-                    <View style={[styles.card66, { backgroundColor: '#FFFFFF', borderColor: '#333333', borderWidth: 2 }]}>
-                      <View style={styles.card66FaceCardPattern}>
-                        <View style={[styles.facePattern1, { backgroundColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
-                        <View style={[styles.facePattern2, { backgroundColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
-                        <View style={[styles.facePattern3, { backgroundColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
+                    <View style={[styles.card66, { backgroundColor: '#FFFFFF', borderColor: '#333333', borderWidth: 2, justifyContent: 'flex-start', paddingTop: 2 }]}>
+                      <View style={styles.card66TopLeft}>
+                        <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                          {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
+                        </ThemedText>
+                        <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                          {card.rank}
+                        </ThemedText>
                       </View>
-                      <ThemedText style={[styles.card66FaceRank, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                      {card.rank === 'J' && (
+                        <View style={[styles.faceCardFigure, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                          <View style={[styles.figureHead, { backgroundColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
+                          <View style={[styles.figureBody, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
+                        </View>
+                      )}
+                      {card.rank === 'Q' && (
+                        <View style={[styles.faceCardFigure, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                          <View style={[styles.figureHeadLarge, { backgroundColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
+                          <View style={[styles.figureCrown, { borderTopColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
+                        </View>
+                      )}
+                      {card.rank === 'K' && (
+                        <View style={[styles.faceCardFigure, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                          <View style={[styles.figureHeadLarge, { backgroundColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
+                          <View style={[styles.kingCrown, { borderTopColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]} />
+                        </View>
+                      )}
+                      <ThemedText style={[styles.card66FaceRank, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000', marginTop: 1 }]}>
                         {card.rank}
                       </ThemedText>
                     </View>
@@ -928,28 +949,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 2,
   },
-  facePattern1: {
-    width: 30,
-    height: 2,
-    opacity: 0.6,
+  faceCardFigure: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 28,
+  },
+  figureHead: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginBottom: 2,
+  },
+  figureHeadLarge: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginBottom: 2,
+  },
+  figureBody: {
+    width: 8,
+    height: 10,
+    borderWidth: 1,
     borderRadius: 1,
   },
-  facePattern2: {
-    width: 25,
-    height: 2,
-    opacity: 0.4,
-    borderRadius: 1,
+  figureCrown: {
+    width: 14,
+    height: 6,
+    borderTopWidth: 2,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
   },
-  facePattern3: {
-    width: 28,
-    height: 2,
-    opacity: 0.7,
-    borderRadius: 1,
+  kingCrown: {
+    width: 14,
+    height: 8,
+    borderTopWidth: 2,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
   },
   card66FaceRank: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: 'bold',
-    marginBottom: 2,
   },
   cardBackPattern: {
     width: '100%',
