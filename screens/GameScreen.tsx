@@ -245,8 +245,8 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
 
     // If AI already played (opponent card set), calculate winner and clear trick
     if (gameState66.currentTrick.opponent && !gameState66.currentTrick.player) {
-      const winner = determineTrickWinner(card, gameState66.currentTrick.opponent, gameState66.trump);
-      const trickCards = [card, gameState66.currentTrick.opponent];
+      const winner = determineTrickWinner(gameState66.currentTrick.opponent, card, gameState66.trump);
+      const trickCards = [gameState66.currentTrick.opponent, card];
       const trickPoints = calculateTrickPoints(trickCards);
       
       let newPlayerScore = gameState66.player.score + marriageBonus;
@@ -1204,6 +1204,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginVertical: Spacing.md,
     minHeight: 100,
+    flexWrap: "nowrap",
+    overflow: "hidden",
   },
   cardWrapper: {
     marginHorizontal: Spacing.xs,
