@@ -245,7 +245,7 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
 
     // If AI already played (opponent card set), calculate winner and clear trick
     if (gameState66.currentTrick.opponent && !gameState66.currentTrick.player) {
-      const winner = determineTrickWinner(gameState66.currentTrick.opponent, card, gameState66.trump);
+      const winner = determineTrickWinner(gameState66.currentTrick.opponent, card, gameState66.trump, false);
       const trickCards = [gameState66.currentTrick.opponent, card];
       const trickPoints = calculateTrickPoints(trickCards);
       
@@ -435,7 +435,7 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
           return !(c.suit === aiCard.suit && c.rank === aiCard.rank && state.opponent.hand.indexOf(c) === idx);
         });
 
-        const winner = determineTrickWinner(state.currentTrick.player, aiCard, state.trump);
+        const winner = determineTrickWinner(state.currentTrick.player, aiCard, state.trump, true);
         const trickCards = [state.currentTrick.player, aiCard];
         const trickPoints = calculateTrickPoints(trickCards);
         

@@ -91,20 +91,20 @@ export function calculateTrickPoints(trick: Card66[]): number {
   return trick.reduce((sum, card) => sum + CARD_VALUES[card.rank], 0);
 }
 
-export function determineTrickWinner(playerCard: Card66, opponentCard: Card66, trump: Card66 | null): 'player' | 'opponent' {
+export function determineTrickWinner(ledCard: Card66, responseCard: Card66, trump: Card66 | null, playerLed: boolean): 'player' | 'opponent' {
   // If same suit, highest rank wins
-  if (playerCard.suit === opponentCard.suit) {
-    return RANK_ORDER[playerCard.rank] > RANK_ORDER[opponentCard.rank] ? 'player' : 'opponent';
+  if (ledCard.suit === responseCard.suit) {
+    return RANK_ORDER[ledCard.rank] > RANK_ORDER[responseCard.rank] ? (playerLed ? 'player' : 'opponent') : (playerLed ? 'opponent' : 'player');
   }
   
   // If one is trump, trump wins
   if (trump) {
-    if (playerCard.suit === trump.suit) return 'player';
-    if (opponentCard.suit === trump.suit) return 'opponent';
+    if (ledCard.suit === trump.suit) return playerLed ? 'player' : 'opponent';
+    if (responseCard.suit === trump.suit) return playerLed ? 'opponent' : 'player';
   }
   
-  // Otherwise, led card suit wins (opponent led, so opponent wins)
-  return 'opponent';
+  // Otherwise, led card suit wins (who led wins)
+  return playerLed ? 'player' : 'opponent';
 }
 
 export function canPlayCard(card: Card66, hand: Card66[], ledCard: Card66 | null, trump: Card66 | null, deckEmpty: boolean = false): boolean {
