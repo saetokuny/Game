@@ -9,6 +9,10 @@ localPort = 8081
 externalPort = 80
 
 [[ports]]
+localPort = 45403
+externalPort = 3001
+
+[[ports]]
 localPort = 46633
 externalPort = 3000
 
@@ -84,3 +88,8 @@ value = "1"
 path = "/*"
 name = "expo-sfv-version"
 value = "0"
+
+[userenv]
+
+[userenv.shared]
+EXPO_TOKEN = "M8kUkjk1KjWdk0RE-7V7Ev6D3ylYVUNVNWqqxM1Y"
