@@ -37,6 +37,7 @@ import {
 } from "@/utils/gameLogic66";
 import { updateGameStats, getSettings, GameSettings } from "@/utils/storage";
 import { t, Language } from "@/utils/localization";
+import { audioSystem } from "@/utils/musicSystem";
 
 interface GameScreenProps {
   navigation: any;
@@ -68,8 +69,16 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
     const loadSettings = async () => {
       const s = await getSettings();
       setSettings(s);
+      audioSystem.setVolume(s.musicVolume);
+      audioSystem.setMusicEnabled(s.musicEnabled);
+      if (s.musicEnabled) {
+        audioSystem.playBackgroundMusic(s.selectedMusic, s.musicVolume);
+      }
     };
     loadSettings();
+    return () => {
+      audioSystem.cleanup();
+    };
   }, []);
 
   useEffect(() => {
@@ -143,6 +152,10 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
     }
     
     if (gameState.gamePhase !== "playerTurn" || isProcessing) return;
+    
+    if (settings?.soundEnabled) {
+      audioSystem.playSound('cardDraw', settings.musicVolume);
+    }
     
     // Oicho-Kabu: Player can only draw once per round, max 3 cards total
     if (gameState.player.hasDrawn || gameState.player.cards.length >= 3) {
