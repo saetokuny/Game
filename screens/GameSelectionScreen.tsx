@@ -48,13 +48,13 @@ export default function GameSelectionScreen({
     {
       id: "oicho-kabu" as const,
       name: "Oicho-Kabu",
-      icon: "layers" as const,
+      icon: "play",
       desc: language === 'en' ? 'Get closest to 9' : 'Değeri 9\'a yakın al',
     },
     {
       id: "66" as const,
       name: "Altmışaltı",
-      icon: "target" as const,
+      icon: "award",
       desc: language === 'en' ? 'Reach 66 points' : '66 puana ulaş',
     },
   ];
@@ -82,7 +82,7 @@ export default function GameSelectionScreen({
             ]}
           >
             <View style={[styles.gameIconContainer, { backgroundColor: colors.primary }]}>
-              <Feather name={game.icon} size={40} color="#D4AF37" />
+              <Feather name={game.icon as any} size={40} color="#D4AF37" />
             </View>
             <ThemedText style={styles.gameName}>{game.name}</ThemedText>
             <ThemedText style={[styles.gameDescription, { color: colors.textSecondary }]}>

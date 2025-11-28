@@ -60,7 +60,7 @@ export default function CardDeckSelectionScreen({
           ]}
         >
           <View style={[styles.deckIconContainer, { backgroundColor: colors.primary }]}>
-            <Feather name="square" size={32} color="#D4AF37" />
+            <Feather name="credit-card" size={32} color="#D4AF37" />
           </View>
           <ThemedText style={styles.deckName}>{t("europeanCards", language)}</ThemedText>
           <ThemedText style={[styles.deckDescription, { color: colors.textSecondary }]}>
