@@ -6,6 +6,7 @@ import { Feather } from "@expo/vector-icons";
 
 import HomeScreen from "@/screens/HomeScreen";
 import GameScreen from "@/screens/GameScreen";
+import GameSelectionScreen from "@/screens/GameSelectionScreen";
 import CardDeckSelectionScreen from "@/screens/CardDeckSelectionScreen";
 import RulesScreen from "@/screens/RulesScreen";
 import SettingsScreen from "@/screens/SettingsScreen";
@@ -229,6 +230,14 @@ export default function RootNavigator({
             onLanguageChange={onLanguageChange}
           />
         )}
+      </Stack.Screen>
+      <Stack.Screen
+        name="GameSelection"
+        options={{
+          headerTitle: "Select Game",
+        }}
+      >
+        {(props) => <GameSelectionScreen {...props} language={language} />}
       </Stack.Screen>
       <Stack.Screen
         name="CardDeckSelection"

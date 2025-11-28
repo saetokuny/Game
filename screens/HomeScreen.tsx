@@ -46,7 +46,7 @@ export default function HomeScreen({ navigation, language, onLanguageChange }: H
     if (vibrationEnabled) {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    navigation.navigate("CardDeckSelection");
+    navigation.navigate("GameSelection");
   };
 
   return (

@@ -173,3 +173,11 @@ export async function saveCardDeck(deck: 'european' | 'japanese'): Promise<void>
     console.error('Error saving card deck:', error);
   }
 }
+
+export async function saveGameType(gameType: 'oicho-kabu' | '66'): Promise<void> {
+  try {
+    await AsyncStorage.setItem('GAME_TYPE', gameType);
+  } catch (error) {
+    console.error('Error saving game type:', error);
+  }
+}
