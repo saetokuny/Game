@@ -643,8 +643,8 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
         style={[
           styles.container,
           {
-            paddingTop: headerHeight + Spacing.lg,
-            paddingBottom: insets.bottom + Spacing.xl,
+            paddingTop: headerHeight + Spacing.md,
+            paddingBottom: insets.bottom + Spacing.md,
           },
         ]}
       >
@@ -1186,23 +1186,23 @@ const styles = StyleSheet.create({
   },
   opponentSection: {
     alignItems: "center",
-    paddingTop: Spacing.xl,
-    paddingBottom: Spacing.sm,
+    paddingTop: Spacing.xs,
+    paddingBottom: Spacing.xs,
   },
   playerSection: {
     alignItems: "center",
-    paddingBottom: Spacing.sm,
+    paddingBottom: Spacing.xs,
   },
   playerLabel: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "600",
-    marginVertical: Spacing.sm,
+    marginVertical: 2,
     opacity: 0.7,
   },
   cardsRow: {
     flexDirection: "row",
     justifyContent: "center",
-    marginVertical: Spacing.md,
+    marginVertical: Spacing.xs,
     minHeight: 100,
     flexWrap: "nowrap",
     overflow: "hidden",
