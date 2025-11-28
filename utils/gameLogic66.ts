@@ -27,6 +27,10 @@ export interface Game66State {
   gamePhase: 'playerTurn' | 'opponentTurn' | 'trickResult' | 'roundEnd' | 'gameEnd';
   roundNumber: number;
   stockClosed: boolean;
+  lastTrickWinner: 'player' | 'opponent' | null;
+  gameStartsWith: 'player' | 'opponent';
+  playerMarriageBonus: number;
+  opponentMarriageBonus: number;
 }
 
 // Card values for points
@@ -172,6 +176,7 @@ export function initializeGame66(): Game66State {
   const { cards: opponentCards, remainingDeck: deck2 } = dealCards66(deck1, 6);
   const trump = deck2.length > 0 ? { ...deck2[0], faceUp: true } : null;
   const remainingDeck = trump ? deck2.slice(1) : deck2;
+  const startsWithPlayer = Math.random() > 0.5;
   
   return {
     player: {
@@ -193,10 +198,36 @@ export function initializeGame66(): Game66State {
     currentTrick: { player: null, opponent: null },
     trickWinner: null,
     phase: 'playing',
-    gamePhase: 'playerTurn', // Player leads first - play card first!
+    gamePhase: startsWithPlayer ? 'playerTurn' : 'opponentTurn',
     roundNumber: 1,
     stockClosed: false,
+    lastTrickWinner: null,
+    gameStartsWith: startsWithPlayer ? 'player' : 'opponent',
+    playerMarriageBonus: 0,
+    opponentMarriageBonus: 0,
   };
+}
+
+export function calculateMarriageBonus(hand: Card66[], playedCard: Card66, trump: Card66 | null): number {
+  if (!trump) return 0;
+  
+  const suitCards = hand.filter(c => c.suit === playedCard.suit);
+  const hasQAndK = suitCards.some(c => c.rank === 'Q') && suitCards.some(c => c.rank === 'K');
+  
+  if (!hasQAndK) return 0;
+  
+  const playedQOrK = playedCard.rank === 'Q' || playedCard.rank === 'K';
+  if (!playedQOrK) return 0;
+  
+  if (playedCard.suit === trump.suit) return 40; // Royal marriage
+  return 20; // Common marriage
+}
+
+export function canExchangeTrumpWithNine(hand: Card66[], trump: Card66 | null, trickNumber: number): Card66 | null {
+  if (!trump || trickNumber === 1) return null;
+  
+  const nineCard = hand.find(c => c.rank === '9' && c.suit === trump.suit);
+  return nineCard || null;
 }
 
 export function getCardName(rank: Rank): string {
