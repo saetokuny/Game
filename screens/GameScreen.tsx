@@ -912,7 +912,7 @@ const styles = StyleSheet.create({
   },
   card66: {
     width: 50,
-    height: 70,
+    height: 85,
     borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'space-between',
