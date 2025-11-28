@@ -107,9 +107,15 @@ export function determineTrickWinner(playerCard: Card66, opponentCard: Card66, t
   return 'opponent';
 }
 
-export function canPlayCard(card: Card66, hand: Card66[], ledCard: Card66 | null, trump: Card66 | null): boolean {
+export function canPlayCard(card: Card66, hand: Card66[], ledCard: Card66 | null, trump: Card66 | null, deckEmpty: boolean = false): boolean {
   // If no card led yet (first trick), can play any card
   if (!ledCard) return true;
+  
+  // If deck is empty, must play trump if you have it
+  if (deckEmpty && trump) {
+    const hasTrump = hand.some(c => c.suit === trump.suit);
+    if (hasTrump && card.suit !== trump.suit) return false;
+  }
   
   // Must follow suit if possible
   const canFollowSuit = hand.some(c => c.suit === ledCard.suit);

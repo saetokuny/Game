@@ -32,6 +32,8 @@ import {
   calculateTrickPoints,
   canPlayCard,
   drawCard66,
+  calculateMarriageBonus,
+  canExchangeTrumpWithNine,
 } from "@/utils/gameLogic66";
 import { updateGameStats, getSettings, GameSettings } from "@/utils/storage";
 import { t, Language } from "@/utils/localization";
@@ -172,10 +174,17 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
       return !(c.suit === card.suit && c.rank === card.rank && gameState66.player.hand.indexOf(c) === idx);
     });
 
+    // Calculate marriage bonus if applicable
+    let marriageBonus = 0;
+    if (!gameState66.currentTrick.player && gameState66.roundNumber > 1) {
+      marriageBonus = calculateMarriageBonus(gameState66.player.hand, card, gameState66.trump);
+    }
+
     setGameState66(prev => prev ? {
       ...prev,
       currentTrick: { player: card, opponent: null },
-      player: { ...prev.player, hand: newHand },
+      player: { ...prev.player, hand: newHand, score: prev.player.score + marriageBonus },
+      playerMarriageBonus: marriageBonus,
       gamePhase: 'opponentTurn',
     } : null);
 
@@ -274,15 +283,22 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
       let newPlayerTricks = gameState66.player.tricksWon;
       let newOpponentTricks = gameState66.opponent.tricksWon;
       
+      // Calculate marriage bonus for opponent
+      let aiMarriageBonus = 0;
+      if (!gameState66.currentTrick.player || gameState66.roundNumber > 1) {
+        aiMarriageBonus = calculateMarriageBonus(gameState66.opponent.hand, aiCard, gameState66.trump);
+      }
+      
       if (winner === 'player') {
         newPlayerScore += trickPoints;
         newPlayerTricks = [...newPlayerTricks, trickCards];
       } else {
-        newOpponentScore += trickPoints;
+        newOpponentScore += trickPoints + aiMarriageBonus;
         newOpponentTricks = [...newOpponentTricks, trickCards];
       }
 
       const gameEnded66 = newPlayerScore >= 66 || newOpponentScore >= 66;
+      const nextPhase = gameEnded66 ? 'gameEnd' : (winner === 'player' ? 'playerTurn' : 'opponentTurn');
 
       setGameState66(prev => prev ? {
         ...prev,
@@ -290,7 +306,9 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
         player: { ...prev.player, tricksWon: newPlayerTricks, score: newPlayerScore },
         currentTrick: { player: null, opponent: null },
         trickWinner: winner,
-        gamePhase: gameEnded66 ? 'gameEnd' : (winner === 'player' ? 'playerTurn' : 'opponentTurn'),
+        lastTrickWinner: winner,
+        gamePhase: nextPhase,
+        opponentMarriageBonus: aiMarriageBonus,
       } : null);
 
       setIsProcessing(false);
@@ -482,6 +500,27 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
                 </ThemedText>
               </View>
             </View>
+            
+            <View style={styles.trumpDisplay}>
+              {gameState66.trump ? (
+                <View>
+                  <ThemedText style={styles.trumpLabel} lightColor="#FFFFFF" darkColor="#FFFFFF">Koz</ThemedText>
+                  <View style={[styles.trumpCard, { backgroundColor: '#FFFFFF', borderColor: '#333333', borderWidth: 2 }]}>
+                    <ThemedText style={[styles.trumpCardText, { color: gameState66.trump.suit === 'hearts' || gameState66.trump.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                      {gameState66.trump.rank}
+                    </ThemedText>
+                    <ThemedText style={[styles.trumpCardSuit, { color: gameState66.trump.suit === 'hearts' || gameState66.trump.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                      {gameState66.trump.suit === 'hearts' ? '♥' : gameState66.trump.suit === 'diamonds' ? '♦' : gameState66.trump.suit === 'clubs' ? '♣' : '♠'}
+                    </ThemedText>
+                  </View>
+                </View>
+              ) : null}
+            </View>
+            
+            <ThemedText style={styles.deckCount} lightColor="#FFFFFF" darkColor="#FFFFFF">
+              {t('remaining', language)}: {gameState66.deck.length}
+            </ThemedText>
+            
             {gameState66.currentTrick.player ? (
               <View style={styles.trickDisplay}>
                 <View style={[styles.trickCard, { backgroundColor: colors.primary }]}>
@@ -989,6 +1028,33 @@ const styles = StyleSheet.create({
   card66FaceRank: {
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  trumpDisplay: {
+    alignItems: 'center',
+    marginVertical: Spacing.sm,
+  },
+  trumpLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  trumpCard: {
+    width: 40,
+    height: 60,
+    borderRadius: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trumpCardText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  trumpCardSuit: {
+    fontSize: 12,
+  },
+  deckCount: {
+    fontSize: 12,
+    marginVertical: Spacing.xs,
   },
   cardBackPattern: {
     width: '100%',
