@@ -444,8 +444,14 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
             <View style={styles.cardsRow}>
               {gameState66.opponent.hand.map((card, index) => (
                 <View key={`opp-${index}`} style={styles.cardWrapper}>
-                  <View style={[styles.card66, { backgroundColor: colors.backgroundSecondary }]}>
-                    <ThemedText style={styles.card66Text}>?</ThemedText>
+                  <View style={[styles.card66, { backgroundColor: '#FFFFFF', borderColor: '#333333' }]}>
+                    <View style={styles.card66TopLeft}>
+                      <ThemedText style={[styles.card66Corner, { color: '#FF0000' }]}>?</ThemedText>
+                    </View>
+                    <ThemedText style={[styles.card66Middle, { color: '#FF0000' }]}>?</ThemedText>
+                    <View style={[styles.card66BottomRight, { transform: [{ rotate: '180deg' }] }]}>
+                      <ThemedText style={[styles.card66Corner, { color: '#FF0000' }]}>?</ThemedText>
+                    </View>
                   </View>
                 </View>
               ))}
@@ -512,9 +518,26 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
                     },
                   ]}
                 >
-                  <View style={[styles.card66, { backgroundColor: colors.primary }]}>
-                    <ThemedText style={styles.card66Rank}>{card.rank}</ThemedText>
-                    <ThemedText style={styles.card66Suit}>{card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}</ThemedText>
+                  <View style={[styles.card66, { backgroundColor: '#FFFFFF', borderColor: '#333333', borderWidth: 2 }]}>
+                    <View style={styles.card66TopLeft}>
+                      <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                        {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
+                      </ThemedText>
+                      <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                        {card.rank}
+                      </ThemedText>
+                    </View>
+                    <ThemedText style={[styles.card66Middle, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                      {card.rank}
+                    </ThemedText>
+                    <View style={[styles.card66BottomRight, { transform: [{ rotate: '180deg' }] }]}>
+                      <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                        {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
+                      </ThemedText>
+                      <ThemedText style={[styles.card66Corner, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                        {card.rank}
+                      </ThemedText>
+                    </View>
                   </View>
                 </Pressable>
               ))}
@@ -856,25 +879,34 @@ const styles = StyleSheet.create({
   card66: {
     width: 50,
     height: 70,
-    borderRadius: BorderRadius.sm,
+    borderRadius: 4,
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#D4AF37',
+    justifyContent: 'space-between',
+    borderWidth: 1.5,
+    borderColor: '#000000',
+    paddingVertical: 3,
+    paddingHorizontal: 2,
   },
   card66Text: {
     fontSize: 12,
     fontWeight: '600',
   },
-  card66Rank: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#D4AF37',
+  card66TopLeft: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  card66Suit: {
+  card66Corner: {
     fontSize: 10,
-    color: '#D4AF37',
-    marginTop: Spacing.xs,
+    fontWeight: 'bold',
+    lineHeight: 12,
+  },
+  card66Middle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  card66BottomRight: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   trickDisplay: {
     alignItems: 'center',
