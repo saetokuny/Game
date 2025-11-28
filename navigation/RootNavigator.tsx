@@ -240,13 +240,14 @@ export default function RootNavigator({
       </Stack.Screen>
       <Stack.Screen
         name="Game"
-        component={GameScreen}
         options={{
           headerTitle: "Round 1",
           gestureEnabled: false,
           headerBackVisible: false,
         }}
-      />
+      >
+        {(props) => <GameScreen {...props} language={language} />}
+      </Stack.Screen>
     </Stack.Navigator>
   );
 }

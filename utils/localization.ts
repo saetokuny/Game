@@ -10,7 +10,7 @@ export const translations = {
     settings: 'Settings',
     
     // Home Screen
-    playVsAI: 'Play vs AI',
+    playVsAI: 'Single Player',
     playVsFriend: 'Play vs Friend',
     comingSoon: 'Multiplayer coming soon',
     wins: 'Wins',
@@ -122,7 +122,7 @@ export const translations = {
     settings: 'Ayarlar',
     
     // Home Screen
-    playVsAI: 'AI\'ye Karşı Oyna',
+    playVsAI: 'Tek Oyunculu',
     playVsFriend: 'Arkadaşa Karşı Oyna',
     comingSoon: 'Çoklu oyuncu yakında gelecek',
     wins: 'Kazanışlar',
