@@ -243,6 +243,72 @@ export default function SettingsScreen() {
             ))}
           </View>
         </View>
+
+        <View style={styles.settingRow}>
+          <View style={styles.settingInfo}>
+            <Feather name="music" size={20} color={theme.text} />
+            <ThemedText style={styles.settingLabel}>Music</ThemedText>
+          </View>
+          <Switch
+            value={settings.musicEnabled}
+            onValueChange={(value) => handleSettingsChange({ musicEnabled: value })}
+            trackColor={{ false: colors.backgroundTertiary, true: colors.primary }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+
+        {settings.musicEnabled && (
+          <>
+            <View style={styles.settingGroup}>
+              <View style={styles.settingInfo}>
+                <Feather name="volume-2" size={20} color={theme.text} />
+                <ThemedText style={styles.settingLabel}>Music Volume: {Math.round(settings.musicVolume * 100)}%</ThemedText>
+              </View>
+              <View style={[styles.sliderContainer, { backgroundColor: colors.backgroundSecondary }]}>
+                <ThemedText style={styles.volumeValue}>{Math.round(settings.musicVolume * 100)}%</ThemedText>
+              </View>
+            </View>
+
+            <View style={styles.settingGroup}>
+              <View style={styles.settingInfo}>
+                <Feather name="radio" size={20} color={theme.text} />
+                <ThemedText style={styles.settingLabel}>Music Style</ThemedText>
+              </View>
+              <View style={styles.optionButtons}>
+                {(["traditional", "modern", "ambient"] as const).map((style) => (
+                  <Pressable
+                    key={style}
+                    onPress={() => handleSettingsChange({ selectedMusic: style })}
+                    style={({ pressed }) => [
+                      styles.optionButton,
+                      {
+                        backgroundColor:
+                          settings.selectedMusic === style
+                            ? colors.primary
+                            : colors.backgroundSecondary,
+                        opacity: pressed ? 0.8 : 1,
+                      },
+                    ]}
+                  >
+                    <ThemedText
+                      style={[
+                        styles.optionButtonText,
+                        {
+                          color:
+                            settings.selectedMusic === style ? "#FFFFFF" : theme.text,
+                        },
+                      ]}
+                      lightColor={settings.selectedMusic === style ? "#FFFFFF" : theme.text}
+                      darkColor={settings.selectedMusic === style ? "#FFFFFF" : theme.text}
+                    >
+                      {style.charAt(0).toUpperCase() + style.slice(1)}
+                    </ThemedText>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          </>
+        )}
       </View>
 
       <View style={[styles.section, { backgroundColor: colors.backgroundDefault }]}>
