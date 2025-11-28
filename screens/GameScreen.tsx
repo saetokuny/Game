@@ -232,7 +232,7 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
 
     setGameState66(prev => prev ? {
       ...prev,
-      currentTrick: { player: card, opponent: null },
+      currentTrick: { player: card, opponent: prev.currentTrick.opponent },
       player: { ...prev.player, hand: updatedPlayerHand, score: prev.player.score + marriageBonus },
       playerMarriageBonus: marriageBonus,
       deck: updatedDeck,
@@ -274,10 +274,11 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
       opponent: { ...prev.opponent, cards: revealedOpponentCards },
     }));
 
-    const aiLoop = (currentCards: PlayingCard[], currentDeck: PlayingCard[]) => {
+    const aiLoop = (currentCards: PlayingCard[], currentDeck: PlayingCard[], aiHasDrawn: boolean = false) => {
       const decision = aiDecision(currentCards, settings?.aiDifficulty || "medium");
 
-      if (decision === "draw" && currentDeck.length > 0) {
+      // Oicho-Kabu: AI can only draw once per round, max 3 cards total
+      if (decision === "draw" && currentDeck.length > 0 && !aiHasDrawn && currentCards.length < 3) {
         aiTimerRef.current = setTimeout(() => {
           const { card, remainingDeck } = drawCard(currentDeck);
           if (card) {
@@ -285,10 +286,10 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
             setGameState((prev) => ({
               ...prev,
               deck: remainingDeck,
-              opponent: { ...prev.opponent, cards: newCards },
+              opponent: { ...prev.opponent, cards: newCards, hasDrawn: true },
             }));
             triggerHaptic();
-            aiLoop(newCards, remainingDeck);
+            aiLoop(newCards, remainingDeck, true);
           } else {
             finishRound();
           }
