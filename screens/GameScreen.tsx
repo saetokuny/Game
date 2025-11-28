@@ -378,7 +378,7 @@ export default function GameScreen({ navigation, language = "en" }: GameScreenPr
         <View style={styles.playerSection}>
           <ScoreDisplay
             value={playerValue}
-            label="Your Score"
+            label={t('yourScore', language)}
             showHandName
             isWinner={roundResult === "player"}
             isLoser={roundResult === "opponent"}
@@ -391,13 +391,13 @@ export default function GameScreen({ navigation, language = "en" }: GameScreenPr
               </View>
             ))}
           </View>
-          <ThemedText style={styles.playerLabel}>You</ThemedText>
+          <ThemedText style={styles.playerLabel}>{t('you', language)}</ThemedText>
         </View>
       </View>
 
       <View style={styles.actionBar}>
         <GameButton
-          title="Draw"
+          title={t('draw', language)}
           onPress={handleDraw}
           variant="primary"
           size="medium"
@@ -409,7 +409,7 @@ export default function GameScreen({ navigation, language = "en" }: GameScreenPr
           style={styles.actionButton}
         />
         <GameButton
-          title="Stand"
+          title={t('stand', language)}
           onPress={handleStand}
           variant="accent"
           size="medium"
@@ -426,15 +426,15 @@ export default function GameScreen({ navigation, language = "en" }: GameScreenPr
       >
         <View style={styles.modalOverlay}>
           <ThemedView style={styles.pauseModalContent}>
-            <ThemedText style={styles.modalTitle}>Game Paused</ThemedText>
+            <ThemedText style={styles.modalTitle}>{t('gamePaused', language)}</ThemedText>
             <GameButton
-              title="Resume"
+              title={t('resume', language)}
               onPress={() => setShowPauseModal(false)}
               variant="primary"
               style={styles.modalButton}
             />
             <GameButton
-              title="How to Play"
+              title={t('howToPlay', language)}
               onPress={() => {
                 setShowPauseModal(false);
                 navigation.navigate("Main", { screen: "Rules" });
@@ -443,7 +443,7 @@ export default function GameScreen({ navigation, language = "en" }: GameScreenPr
               style={styles.modalButton}
             />
             <GameButton
-              title="Quit Game"
+              title={t('quitGame', language)}
               onPress={handleQuit}
               variant="danger"
               style={styles.modalButton}
@@ -470,18 +470,18 @@ export default function GameScreen({ navigation, language = "en" }: GameScreenPr
 
             {roundResult === "draw" && !gameEnded ? (
               <ThemedText style={styles.noPointsText}>
-                No Points Awarded
+                {t('noPointsAward', language)}
               </ThemedText>
             ) : null}
 
             <View style={styles.resultScores}>
               <View style={styles.resultScoreItem}>
-                <ThemedText style={styles.resultScoreLabel}>You</ThemedText>
+                <ThemedText style={styles.resultScoreLabel}>{t('you', language)}</ThemedText>
                 <ThemedText style={styles.resultScoreValue}>{playerValue}</ThemedText>
               </View>
               <ThemedText style={styles.resultVs}>vs</ThemedText>
               <View style={styles.resultScoreItem}>
-                <ThemedText style={styles.resultScoreLabel}>AI</ThemedText>
+                <ThemedText style={styles.resultScoreLabel}>{t('ai', language)}</ThemedText>
                 <ThemedText style={styles.resultScoreValue}>
                   {calculateHandValue(gameState.opponent.cards)}
                 </ThemedText>
@@ -491,24 +491,24 @@ export default function GameScreen({ navigation, language = "en" }: GameScreenPr
             {gameEnded ? (
               <View style={styles.finalScore}>
                 <ThemedText style={styles.finalScoreText}>
-                  Final Score: {gameState.playerTotalWins} - {gameState.opponentTotalWins}
+                  {t('finalScore', language)}: {gameState.playerTotalWins} - {gameState.opponentTotalWins}
                 </ThemedText>
                 {gameState.draws > 0 ? (
                   <ThemedText style={[styles.drawsText, { color: colors.textSecondary }]}>
-                    ({gameState.draws} draws)
+                    ({gameState.draws} {t('draws', language)})
                   </ThemedText>
                 ) : null}
               </View>
             ) : null}
 
             <GameButton
-              title={gameEnded ? "Play Again" : "Next Round"}
+              title={gameEnded ? t('playAgain', language) : t('nextRound', language)}
               onPress={gameEnded ? handlePlayAgain : handleNextRound}
               variant="primary"
               style={styles.modalButton}
             />
             <GameButton
-              title="Main Menu"
+              title={t('mainMenu', language)}
               onPress={handleQuit}
               variant="secondary"
               style={styles.modalButton}
