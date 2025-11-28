@@ -281,7 +281,43 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
   };
 
   const runAITurn66 = () => {
-    if (!gameState66 || !gameState66.currentTrick.player) return;
+    if (!gameState66) return;
+    
+    // First turn: AI leads with a card
+    if (!gameState66.currentTrick.player && !gameState66.currentTrick.opponent) {
+      setIsProcessing(true);
+      aiTimerRef.current = setTimeout(() => {
+        const aiCard = aiChooseCard66(gameState66.opponent.hand, null, settings?.aiDifficulty || 'medium');
+        if (!aiCard) {
+          setIsProcessing(false);
+          return;
+        }
+
+        const newOpponentHand = gameState66.opponent.hand.filter((c, idx) => {
+          return !(c.suit === aiCard.suit && c.rank === aiCard.rank && gameState66.opponent.hand.indexOf(c) === idx);
+        });
+
+        // Calculate marriage bonus for first move (if round > 1)
+        let aiMarriageBonus = 0;
+        if (gameState66.roundNumber > 1) {
+          aiMarriageBonus = calculateMarriageBonus(gameState66.opponent.hand, aiCard, gameState66.trump);
+        }
+
+        setGameState66(prev => prev ? {
+          ...prev,
+          opponent: { ...prev.opponent, hand: newOpponentHand },
+          currentTrick: { player: null, opponent: aiCard },
+          opponentMarriageBonus: aiMarriageBonus,
+          gamePhase: 'playerTurn',
+        } : null);
+
+        setIsProcessing(false);
+      }, 800);
+      return;
+    }
+    
+    // Response turn: Player led, AI responds
+    if (!gameState66.currentTrick.player) return;
     setIsProcessing(true);
 
     aiTimerRef.current = setTimeout(() => {
@@ -309,17 +345,11 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
       let newPlayerTricks = gameState66.player.tricksWon;
       let newOpponentTricks = gameState66.opponent.tricksWon;
       
-      // Calculate marriage bonus for opponent
-      let aiMarriageBonus = 0;
-      if (gameState66.roundNumber > 1) {
-        aiMarriageBonus = calculateMarriageBonus(gameState66.opponent.hand, aiCard, gameState66.trump);
-      }
-      
       if (winner === 'player') {
         newPlayerScore += trickPoints;
         newPlayerTricks = [...newPlayerTricks, trickCards];
       } else {
-        newOpponentScore += trickPoints + aiMarriageBonus;
+        newOpponentScore += trickPoints;
         newOpponentTricks = [...newOpponentTricks, trickCards];
       }
 
@@ -334,12 +364,11 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
         trickWinner: winner,
         lastTrickWinner: winner,
         gamePhase: nextPhase,
-        opponentMarriageBonus: aiMarriageBonus,
       } : null);
 
       setIsProcessing(false);
       
-      // Delay before showing result to let player see the cards
+      // Delay before clearing to let player see the cards
       aiTimerRef.current = setTimeout(() => {
         setGameState66(prev => prev ? {
           ...prev,
