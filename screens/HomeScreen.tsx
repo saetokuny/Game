@@ -11,7 +11,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { GameButton } from "@/components/GameButton";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, Colors, BorderRadius } from "@/constants/theme";
-import { getGameStats, GameStats, getSettings, saveLanguage } from "@/utils/storage";
+import { getGameStats, GameStats, getSettings } from "@/utils/storage";
 import { t, Language } from "@/utils/localization";
 
 interface HomeScreenProps {
@@ -27,7 +27,6 @@ export default function HomeScreen({ navigation, language, onLanguageChange }: H
   const headerHeight = useHeaderHeight();
   const [stats, setStats] = useState<GameStats | null>(null);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
-  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -50,15 +49,6 @@ export default function HomeScreen({ navigation, language, onLanguageChange }: H
     navigation.navigate("CardDeckSelection");
   };
 
-  const handleLanguageChange = async (newLanguage: Language) => {
-    await saveLanguage(newLanguage);
-    onLanguageChange(newLanguage);
-    setShowLanguageMenu(false);
-    if (vibrationEnabled) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-  };
-
   return (
     <ThemedView
       style={[
@@ -69,62 +59,6 @@ export default function HomeScreen({ navigation, language, onLanguageChange }: H
         },
       ]}
     >
-      <Pressable
-        onPress={() => setShowLanguageMenu(!showLanguageMenu)}
-        style={({ pressed }) => [
-          styles.languageButton,
-          {
-            backgroundColor: colors.backgroundDefault,
-            opacity: pressed ? 0.7 : 1,
-          },
-        ]}
-      >
-        <Feather name="globe" size={18} color={colors.primary} />
-        <ThemedText style={styles.languageButtonText}>
-          {language === 'en' ? 'EN' : 'TR'}
-        </ThemedText>
-      </Pressable>
-
-      {showLanguageMenu ? (
-        <View style={[styles.languageMenu, { backgroundColor: colors.backgroundDefault }]}>
-          <Pressable
-            onPress={() => handleLanguageChange('en')}
-            style={({ pressed }) => [
-              styles.languageMenuItem,
-              {
-                backgroundColor: language === 'en' ? colors.primary : 'transparent',
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
-          >
-            <ThemedText
-              style={styles.languageMenuItemText}
-              lightColor={language === 'en' ? '#FFFFFF' : undefined}
-              darkColor={language === 'en' ? '#FFFFFF' : undefined}
-            >
-              English
-            </ThemedText>
-          </Pressable>
-          <Pressable
-            onPress={() => handleLanguageChange('tr')}
-            style={({ pressed }) => [
-              styles.languageMenuItem,
-              {
-                backgroundColor: language === 'tr' ? colors.primary : 'transparent',
-                opacity: pressed ? 0.7 : 1,
-              },
-            ]}
-          >
-            <ThemedText
-              style={styles.languageMenuItemText}
-              lightColor={language === 'tr' ? '#FFFFFF' : undefined}
-              darkColor={language === 'tr' ? '#FFFFFF' : undefined}
-            >
-              Türkçe
-            </ThemedText>
-          </Pressable>
-        </View>
-      ) : null}
 
       <View style={styles.logoSection}>
         <View style={[styles.logoContainer, { backgroundColor: colors.primary }]}>

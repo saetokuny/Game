@@ -18,6 +18,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { Spacing, BorderRadius, Colors } from "@/constants/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Language } from "@/utils/localization";
+import { saveLanguage } from "@/utils/storage";
 
 export type RootStackParamList = {
   Main: undefined;
@@ -35,7 +36,13 @@ export type DrawerParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Drawer = createDrawerNavigator<DrawerParamList>();
 
-function CustomDrawerContent({ navigation }: any) {
+interface CustomDrawerContentProps {
+  navigation: any;
+  language: Language;
+  onLanguageChange: (language: Language) => void;
+}
+
+function CustomDrawerContent({ navigation, language, onLanguageChange }: CustomDrawerContentProps) {
   const { theme, isDark } = useTheme();
   const colors = isDark ? Colors.dark : Colors.light;
   const insets = useSafeAreaInsets();
@@ -46,6 +53,11 @@ function CustomDrawerContent({ navigation }: any) {
     { name: "Statistics", icon: "bar-chart-2" as const, route: "Statistics" },
     { name: "Settings", icon: "settings" as const, route: "Settings" },
   ];
+
+  const handleLanguageChange = async (newLanguage: Language) => {
+    await saveLanguage(newLanguage);
+    onLanguageChange(newLanguage);
+  };
 
   return (
     <ThemedView style={[styles.drawerContainer, { paddingTop: insets.top + Spacing.xl }]}>
@@ -72,6 +84,48 @@ function CustomDrawerContent({ navigation }: any) {
         ))}
       </View>
 
+      <View style={[styles.languageSection, { backgroundColor: colors.backgroundDefault }]}>
+        <ThemedText style={styles.languageSectionTitle}>Language</ThemedText>
+        <View style={styles.languageOptions}>
+          <Pressable
+            onPress={() => handleLanguageChange('en')}
+            style={({ pressed }) => [
+              styles.languageOption,
+              {
+                backgroundColor: language === 'en' ? colors.primary : colors.backgroundSecondary,
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
+          >
+            <ThemedText
+              style={styles.languageOptionText}
+              lightColor={language === 'en' ? '#FFFFFF' : undefined}
+              darkColor={language === 'en' ? '#FFFFFF' : undefined}
+            >
+              English
+            </ThemedText>
+          </Pressable>
+          <Pressable
+            onPress={() => handleLanguageChange('tr')}
+            style={({ pressed }) => [
+              styles.languageOption,
+              {
+                backgroundColor: language === 'tr' ? colors.primary : colors.backgroundSecondary,
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
+          >
+            <ThemedText
+              style={styles.languageOptionText}
+              lightColor={language === 'tr' ? '#FFFFFF' : undefined}
+              darkColor={language === 'tr' ? '#FFFFFF' : undefined}
+            >
+              Türkçe
+            </ThemedText>
+          </Pressable>
+        </View>
+      </View>
+
       <View style={[styles.drawerFooter, { paddingBottom: insets.bottom + Spacing.lg }]}>
         <ThemedText style={styles.footerText}>Version 1.0.0</ThemedText>
       </View>
@@ -89,7 +143,13 @@ function DrawerNavigator({ language, onLanguageChange }: DrawerNavigatorProps) {
 
   return (
     <Drawer.Navigator
-      drawerContent={(props) => <CustomDrawerContent {...props} />}
+      drawerContent={(props) => (
+        <CustomDrawerContent
+          {...props}
+          language={language}
+          onLanguageChange={onLanguageChange}
+        />
+      )}
       screenOptions={({ navigation }) => ({
         ...getCommonScreenOptions({ theme, isDark }),
         headerLeft: () => (
@@ -192,6 +252,34 @@ export default function RootNavigator({
 }
 
 const styles = StyleSheet.create({
+  languageSection: {
+    marginVertical: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.md,
+  },
+  languageSectionTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: Spacing.sm,
+    opacity: 0.7,
+  },
+  languageOptions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  languageOption: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  languageOptionText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
   drawerContainer: {
     flex: 1,
     paddingHorizontal: Spacing.xl,
