@@ -26,12 +26,12 @@ const CARD_SIZES = {
   large: { width: 90, height: 130 },
 };
 
-const getSuitIcon = (suit: Suit): keyof typeof Feather.glyphMap => {
-  const icons: Record<Suit, keyof typeof Feather.glyphMap> = {
-    hearts: "heart",
-    diamonds: "square",
-    clubs: "target",
-    spades: "triangle",
+const getSuitIcon = (suit: Suit): string => {
+  const icons: Record<Suit, string> = {
+    hearts: "♥",
+    diamonds: "♦",
+    clubs: "♣",
+    spades: "♠",
   };
   return icons[suit];
 };
@@ -123,17 +123,31 @@ export function PlayingCardComponent({
           >
             {getDisplayValue(card.value)}
           </ThemedText>
-          <Feather name={getSuitIcon(card.suit)} size={iconSize} color={suitColor} />
+          <ThemedText
+            style={[styles.cardValue, { color: suitColor, fontSize: iconSize }]}
+            lightColor={suitColor}
+            darkColor={suitColor}
+          >
+            {getSuitIcon(card.suit)}
+          </ThemedText>
         </View>
         <View style={styles.cardCenter}>
-          <Feather
-            name={getSuitIcon(card.suit)}
-            size={iconSize * 2}
-            color={suitColor}
-          />
+          <ThemedText
+            style={[styles.cardValue, { color: suitColor, fontSize: iconSize * 2 }]}
+            lightColor={suitColor}
+            darkColor={suitColor}
+          >
+            {getSuitIcon(card.suit)}
+          </ThemedText>
         </View>
         <View style={[styles.cardCorner, styles.cardCornerBottom]}>
-          <Feather name={getSuitIcon(card.suit)} size={iconSize} color={suitColor} />
+          <ThemedText
+            style={[styles.cardValue, { color: suitColor, fontSize: iconSize }]}
+            lightColor={suitColor}
+            darkColor={suitColor}
+          >
+            {getSuitIcon(card.suit)}
+          </ThemedText>
           <ThemedText
             style={[styles.cardValue, { color: suitColor, fontSize: valueSize }]}
             lightColor={suitColor}

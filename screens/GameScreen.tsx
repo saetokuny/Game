@@ -24,14 +24,16 @@ import {
   PlayingCard,
 } from "@/utils/gameLogic";
 import { updateGameStats, getSettings, GameSettings } from "@/utils/storage";
+import { t, Language } from "@/utils/localization";
 
 interface GameScreenProps {
   navigation: any;
+  language?: Language;
 }
 
 type RoundResult = "player" | "opponent" | "draw" | null;
 
-export default function GameScreen({ navigation }: GameScreenProps) {
+export default function GameScreen({ navigation, language = "en" }: GameScreenProps) {
   const { theme, isDark } = useTheme();
   const colors = isDark ? Colors.dark : Colors.light;
   const insets = useSafeAreaInsets();
@@ -279,13 +281,13 @@ export default function GameScreen({ navigation }: GameScreenProps) {
   const getResultTitle = () => {
     if (gameEnded) {
       const { playerTotalWins, opponentTotalWins } = gameState;
-      if (playerTotalWins > opponentTotalWins) return "You Win the Game!";
-      if (opponentTotalWins > playerTotalWins) return "AI Wins the Game";
-      return "Game is a Draw";
+      if (playerTotalWins > opponentTotalWins) return t('youWinGame', language);
+      if (opponentTotalWins > playerTotalWins) return t('aiWinsGame', language);
+      return t('gameDrawn', language);
     }
-    if (roundResult === "player") return "You Win!";
-    if (roundResult === "opponent") return "AI Wins";
-    return "Draw";
+    if (roundResult === "player") return t('youWin', language);
+    if (roundResult === "opponent") return t('aiWins', language);
+    return t('noPointsAward', language);
   };
 
   const getResultColor = () => {
