@@ -25,9 +25,6 @@ export interface GameSettings {
   vibrationEnabled: boolean;
   animationSpeed: 'slow' | 'normal' | 'fast';
   aiDifficulty: 'easy' | 'medium' | 'hard';
-  musicEnabled: boolean;
-  musicVolume: number;
-  selectedMusic: 'traditional' | 'peaceful' | 'energetic';
 }
 
 const DEFAULT_PROFILE: PlayerProfile = {
@@ -47,9 +44,6 @@ const DEFAULT_SETTINGS: GameSettings = {
   vibrationEnabled: true,
   animationSpeed: 'normal',
   aiDifficulty: 'medium',
-  musicEnabled: true,
-  musicVolume: 0.5,
-  selectedMusic: 'traditional',
 };
 
 export async function getPlayerProfile(): Promise<PlayerProfile> {
