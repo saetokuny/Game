@@ -193,6 +193,10 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
 
   const playCard66 = async (card: Card66) => {
     if (!gameState66 || isProcessing || gameState66.gamePhase !== 'playerTurn') return;
+    
+    // Prevent playing if trick is already complete (both cards played)
+    if (gameState66.currentTrick.player && gameState66.currentTrick.opponent) return;
+    
     setIsProcessing(true);
     await triggerHaptic();
 
@@ -330,6 +334,10 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
     
     // Response turn: Player led, AI responds
     if (!gameState66.currentTrick.player) return;
+    
+    // Prevent AI from playing twice (if opponent card already set)
+    if (gameState66.currentTrick.opponent) return;
+    
     setIsProcessing(true);
 
     aiTimerRef.current = setTimeout(() => {
