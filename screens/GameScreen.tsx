@@ -639,12 +639,13 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
 
   if (gameType === '66' && gameState66) {
     return (
-      <ThemedView
+      <View
         style={[
-          styles.container,
+          styles.container66,
           {
             paddingTop: headerHeight + Spacing.md,
             paddingBottom: insets.bottom + Spacing.md,
+            backgroundColor: '#1B5F3F',
           },
         ]}
       >
@@ -653,22 +654,27 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
           style={({ pressed }) => [
             styles.pauseButton,
             {
-              backgroundColor: colors.backgroundSecondary,
+              backgroundColor: '#0D5F7D',
               opacity: pressed ? 0.7 : 1,
               top: headerHeight + Spacing.sm,
             },
           ]}
         >
-          <Feather name="pause" size={24} color={theme.text} />
+          <Feather name="pause" size={24} color="#FFFFFF" />
         </Pressable>
 
-        <View style={styles.gameArea}>
-          <View style={styles.opponentSection}>
-            <ThemedText style={styles.playerLabel}>{t('ai', language)}</ThemedText>
-            <View style={styles.cardsRow}>
+        <View style={styles.gameArea66}>
+          <View style={styles.scoreFlag66}>
+            <View style={styles.flagContent}>
+              <ThemedText style={styles.flagScore}>{gameState66.player.score}</ThemedText>
+            </View>
+          </View>
+
+          <View style={styles.opponentSection66}>
+            <View style={styles.cardsRow66}>
               {gameState66.opponent.hand.map((card, index) => (
-                <View key={`opp-${index}`} style={styles.cardWrapper}>
-                  <View style={[styles.card66, { backgroundColor: '#1A5F7A', borderColor: '#0D3A4A' }]}>
+                <View key={`opp-${index}`} style={styles.cardWrapper66}>
+                  <View style={[styles.card66, { backgroundColor: '#1A5F7A', borderColor: '#FFFFFF' }]}>
                     <View style={styles.cardBackPattern}>
                       <View style={styles.backPatternLine} />
                       <View style={styles.backPatternLine} />
@@ -680,94 +686,46 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
                 </View>
               ))}
             </View>
-            <ScoreDisplay
-              value={gameState66.opponent.score}
-              label={t('score', language)}
-              isWinner={gameState66.gamePhase === 'gameEnd' && gameState66.opponent.score > gameState66.player.score}
-              isLoser={gameState66.gamePhase === 'gameEnd' && gameState66.opponent.score < gameState66.player.score}
-              isDraw={gameState66.gamePhase === 'gameEnd' && gameState66.opponent.score === gameState66.player.score}
-            />
           </View>
 
-          <View style={[styles.tableCenter, { backgroundColor: colors.cardTable }]}>
-            <View style={styles.scoreBoard66}>
-              <View style={styles.scorePair}>
-                <ThemedText style={styles.scoreLabel} lightColor="#FFFFFF" darkColor="#FFFFFF">
-                  {t('you', language)}
-                </ThemedText>
-                <ThemedText style={styles.scoreValue} lightColor="#FFD700" darkColor="#FFD700">
-                  {gameState66.player.score}
-                </ThemedText>
-              </View>
-              
-              <View style={styles.divider} />
-              
-              <ThemedText style={styles.vsText} lightColor="#FFFFFF" darkColor="#FFFFFF">/66</ThemedText>
-              
-              <View style={styles.divider} />
-              
-              <View style={styles.scorePair}>
-                <ThemedText style={styles.scoreLabel} lightColor="#FFFFFF" darkColor="#FFFFFF">
-                  {t('ai', language)}
-                </ThemedText>
-                <ThemedText style={styles.scoreValue} lightColor="#FFD700" darkColor="#FFD700">
-                  {gameState66.opponent.score}
-                </ThemedText>
-              </View>
-            </View>
-            
-            <View style={styles.gameInfo}>
-              <View style={styles.trumpDisplaySmall}>
+          <View style={styles.centerArea66}>
+            <View style={styles.centerRow66}>
+              <View style={styles.trumpArea66}>
                 {gameState66.trump ? (
-                  <>
-                    <ThemedText style={styles.infoLabel} lightColor="#FFFFFF" darkColor="#FFFFFF">{t('trump', language)}</ThemedText>
-                    <View style={[styles.trumpCardSmall, { backgroundColor: '#FFFFFF', borderColor: '#333333', borderWidth: 1.5 }]}>
-                      <ThemedText style={[styles.trumpCardTextSmall, { color: gameState66.trump.suit === 'hearts' || gameState66.trump.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
-                        {gameState66.trump.rank}{gameState66.trump.suit === 'hearts' ? '♥' : gameState66.trump.suit === 'diamonds' ? '♦' : gameState66.trump.suit === 'clubs' ? '♣' : '♠'}
-                      </ThemedText>
-                    </View>
-                  </>
+                  <View style={[styles.trumpCard66, { backgroundColor: '#FFFFFF', borderColor: '#FFFFFF', borderWidth: 2 }]}>
+                    <ThemedText style={[styles.trumpCardText66, { color: gameState66.trump.suit === 'hearts' || gameState66.trump.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
+                      {gameState66.trump.rank}{gameState66.trump.suit === 'hearts' ? '♥' : gameState66.trump.suit === 'diamonds' ? '♦' : gameState66.trump.suit === 'clubs' ? '♣' : '♠'}
+                    </ThemedText>
+                  </View>
                 ) : null}
               </View>
-              
-              <View style={styles.deckDisplaySmall}>
-                <ThemedText style={styles.infoLabel} lightColor="#FFFFFF" darkColor="#FFFFFF">{t('remaining', language)}</ThemedText>
-                <ThemedText style={styles.deckCountSmall} lightColor="#FFD700" darkColor="#FFD700">
-                  {gameState66.deck.length}
-                </ThemedText>
-              </View>
-            </View>
-            
-            {gameState66.currentTrick.player || gameState66.currentTrick.opponent ? (
-              <View style={styles.trickDisplay66}>
-                <ThemedText style={styles.playedLabel} lightColor="#FFFFFF" darkColor="#FFFFFF">{t('cardsPlayed', language)}</ThemedText>
-                <View style={styles.cardsPlayedRow}>
+
+              {gameState66.currentTrick.player || gameState66.currentTrick.opponent ? (
+                <View style={styles.playedCardsArea66}>
                   {gameState66.currentTrick.player && (
-                    <View style={[styles.trickCardDisplay, { backgroundColor: colors.primary }]}>
-                      <ThemedText style={styles.trickCardText66}>{gameState66.currentTrick.player.rank}</ThemedText>
-                      <ThemedText style={styles.trickCardSuit66}>{gameState66.currentTrick.player.suit === 'hearts' ? '♥' : gameState66.currentTrick.player.suit === 'diamonds' ? '♦' : gameState66.currentTrick.player.suit === 'clubs' ? '♣' : '♠'}</ThemedText>
+                    <View style={[styles.playedCard66, { backgroundColor: '#F5F5F5' }]}>
+                      <ThemedText style={styles.playedCardText66}>{gameState66.currentTrick.player.rank}</ThemedText>
                     </View>
                   )}
                   {gameState66.currentTrick.opponent && (
-                    <View style={[styles.trickCardDisplay, { backgroundColor: '#C0A080' }]}>
-                      <ThemedText style={styles.trickCardText66}>{gameState66.currentTrick.opponent.rank}</ThemedText>
-                      <ThemedText style={styles.trickCardSuit66}>{gameState66.currentTrick.opponent.suit === 'hearts' ? '♥' : gameState66.currentTrick.opponent.suit === 'diamonds' ? '♦' : gameState66.currentTrick.opponent.suit === 'clubs' ? '♣' : '♠'}</ThemedText>
+                    <View style={[styles.playedCard66, { backgroundColor: '#F5F5F5' }]}>
+                      <ThemedText style={styles.playedCardText66}>{gameState66.currentTrick.opponent.rank}</ThemedText>
                     </View>
                   )}
                 </View>
+              ) : null}
+
+              <View style={styles.deckArea66}>
+                <View style={[styles.deckCard66, { backgroundColor: '#1A5F7A', borderColor: '#FFFFFF', borderWidth: 2 }]}>
+                  <Feather name="layers" size={20} color="#FFFFFF" />
+                </View>
+                <ThemedText style={styles.deckCountText66}>{gameState66.deck.length}</ThemedText>
               </View>
-            ) : null}
+            </View>
           </View>
 
-          <View style={styles.playerSection}>
-            <ScoreDisplay
-              value={gameState66.player.score}
-              label={t('yourScore', language)}
-              isWinner={gameState66.gamePhase === 'gameEnd' && gameState66.player.score > gameState66.opponent.score}
-              isLoser={gameState66.gamePhase === 'gameEnd' && gameState66.player.score < gameState66.opponent.score}
-              isDraw={gameState66.gamePhase === 'gameEnd' && gameState66.player.score === gameState66.opponent.score}
-            />
-            <View style={styles.cardsRow}>
+          <View style={styles.playerSection66}>
+            <View style={styles.cardsRow66}>
               {gameState66.player.hand.map((card, index) => (
                 <Pressable
                   key={`player-${index}`}
@@ -778,7 +736,7 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
                   }}
                   disabled={gameState66.gamePhase !== 'playerTurn' || isProcessing}
                   style={({ pressed }) => [
-                    styles.cardWrapper,
+                    styles.cardWrapper66,
                     {
                       opacity: pressed ? 0.7 : gameState66.gamePhase === 'playerTurn' ? 1 : 0.5,
                       transform: [{ scale: pressed && gameState66?.gamePhase === 'playerTurn' ? 0.95 : 1 }],
@@ -855,7 +813,6 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
                 </Pressable>
               ))}
             </View>
-            <ThemedText style={styles.playerLabel}>{t('you', language)}</ThemedText>
             
             {gameState66.trump && gameState66.player.hand.some(c => c.rank === '9' && c.suit === gameState66.trump!.suit) && gameState66.gamePhase === 'playerTurn' ? (
               <Pressable
@@ -874,6 +831,7 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
             ) : null}
           </View>
         </View>
+      </View>
 
         <Modal
           visible={showPauseModal}
