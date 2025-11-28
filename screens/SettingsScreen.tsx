@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Switch, Pressable, Alert, TextInput, ScrollView } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import Slider from "@react-native-community/slider";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -18,6 +19,7 @@ import {
   PlayerProfile,
   GameSettings,
 } from "@/utils/storage";
+import { audioSystem } from "@/utils/musicSystem";
 
 type AnimationSpeed = "slow" | "normal" | "fast";
 type AIDifficulty = "easy" | "medium" | "hard";
@@ -262,11 +264,37 @@ export default function SettingsScreen() {
             <View style={styles.settingGroup}>
               <View style={styles.settingInfo}>
                 <Feather name="volume-2" size={20} color={theme.text} />
-                <ThemedText style={styles.settingLabel}>Music Volume: {Math.round(settings.musicVolume * 100)}%</ThemedText>
+                <ThemedText style={styles.settingLabel}>Music Volume</ThemedText>
               </View>
-              <View style={[styles.sliderContainer, { backgroundColor: colors.backgroundSecondary }]}>
-                <ThemedText style={styles.volumeValue}>{Math.round(settings.musicVolume * 100)}%</ThemedText>
+              <View style={styles.sliderWrapper}>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0}
+                  maximumValue={1}
+                  value={settings.musicVolume}
+                  onValueChange={(value) => {
+                    handleSettingsChange({ musicVolume: value });
+                    audioSystem.setVolume(value);
+                  }}
+                  minimumTrackTintColor={colors.primary}
+                  maximumTrackTintColor={colors.backgroundTertiary}
+                  thumbTintColor={colors.primary}
+                />
+                <ThemedText style={styles.volumePercentage}>{Math.round(settings.musicVolume * 100)}%</ThemedText>
               </View>
+              <Pressable
+                onPress={() => {
+                  audioSystem.playBackgroundMusic(settings.selectedMusic, settings.musicVolume);
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }}
+                style={({ pressed }) => [
+                  styles.previewButton,
+                  { backgroundColor: colors.primary, opacity: pressed ? 0.7 : 1 }
+                ]}
+              >
+                <Feather name="play" size={18} color="#FFFFFF" />
+                <ThemedText style={styles.previewButtonText}>Preview Music</ThemedText>
+              </Pressable>
             </View>
 
             <View style={styles.settingGroup}>
@@ -407,16 +435,36 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: "center",
   },
-  sliderContainer: {
+  sliderWrapper: {
+    marginTop: Spacing.lg,
     paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.sm,
-    marginTop: Spacing.md,
+    backgroundColor: "rgba(0, 0, 0, 0.02)",
+  },
+  slider: {
+    width: "100%",
+    height: 40,
+    marginBottom: Spacing.md,
+  },
+  volumePercentage: {
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: Spacing.md,
+  },
+  previewButton: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    gap: Spacing.sm,
   },
-  volumeValue: {
-    fontSize: 16,
+  previewButtonText: {
+    fontSize: 14,
     fontWeight: "600",
+    color: "#FFFFFF",
   },
   spacer: {
     height: Spacing["2xl"],
