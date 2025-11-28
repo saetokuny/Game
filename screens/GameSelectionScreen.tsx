@@ -45,9 +45,9 @@ export default function GameSelectionScreen({
     },
     {
       id: "66" as const,
-      name: "66",
-      icon: "hash" as const,
-      desc: language === 'en' ? 'Get closest to 6' : 'Değeri 6\'ya yakın al',
+      name: "Altmışaltı",
+      icon: "target" as const,
+      desc: language === 'en' ? 'Reach 66 points' : '66 puana ulaş',
     },
   ];
 

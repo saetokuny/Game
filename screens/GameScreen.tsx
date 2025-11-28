@@ -19,13 +19,20 @@ import {
   dealCards,
   drawCard,
   calculateHandValue,
-  calculateHandValue66,
   determineWinner,
-  determineWinner66,
   aiDecision,
-  aiDecision66,
   PlayingCard,
 } from "@/utils/gameLogic";
+import {
+  Game66State,
+  Card66,
+  initializeGame66,
+  aiChooseCard66,
+  determineTrickWinner,
+  calculateTrickPoints,
+  canPlayCard,
+  drawCard66,
+} from "@/utils/gameLogic66";
 import { updateGameStats, getSettings, GameSettings } from "@/utils/storage";
 import { t, Language } from "@/utils/localization";
 
@@ -45,6 +52,7 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
 
   const gameType = route?.params?.gameType || 'oicho-kabu';
   const [gameState, setGameState] = useState<GameState>(() => initializeGame('Player', gameType as 'oicho-kabu' | '66'));
+  const [gameState66, setGameState66] = useState<Game66State | null>(gameType === '66' ? initializeGame66() : null);
   const [showPauseModal, setShowPauseModal] = useState(false);
   const [showResultModal, setShowResultModal] = useState(false);
   const [roundResult, setRoundResult] = useState<RoundResult>(null);
@@ -123,6 +131,11 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
   };
 
   const handleDraw = async () => {
+    if (gameType === '66') {
+      // 66 game: Play card (handled in playCard)
+      return;
+    }
+    
     if (gameState.gamePhase !== "playerTurn" || isProcessing) return;
 
     setIsProcessing(true);
@@ -148,6 +161,22 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
     }, 300);
   };
 
+  const playCard66 = async (card: Card66) => {
+    if (!gameState66 || isProcessing) return;
+    setIsProcessing(true);
+    await triggerHaptic();
+
+    const newHand = gameState66.player.hand.filter(c => c !== card);
+    setGameState66(prev => prev ? {
+      ...prev,
+      currentTrick: { ...prev.currentTrick, player: card },
+      player: { ...prev.player, hand: newHand },
+      gamePhase: 'opponentTurn',
+    } : null);
+
+    setTimeout(() => setIsProcessing(false), 300);
+  };
+
   const handleStand = async () => {
     if (gameState.gamePhase !== "playerTurn" || isProcessing) return;
 
@@ -161,6 +190,11 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
   };
 
   const runAITurn = () => {
+    if (gameType === '66' && gameState66) {
+      runAITurn66();
+      return;
+    }
+
     setIsProcessing(true);
 
     const revealedOpponentCards = gameState.opponent.cards.map((c) => ({
@@ -204,7 +238,54 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
     }, 600);
   };
 
+  const runAITurn66 = () => {
+    if (!gameState66) return;
+    setIsProcessing(true);
+
+    aiTimerRef.current = setTimeout(() => {
+      const aiCard = aiChooseCard66(
+        gameState66.opponent.hand,
+        gameState66.currentTrick.player,
+        settings?.aiDifficulty || 'medium'
+      );
+
+      const newOpponentHand = gameState66.opponent.hand.filter(c => c !== aiCard);
+      const winner = determineTrickWinner(gameState66.currentTrick.player!, aiCard, gameState66.trump);
+      
+      let newPlayerTricks = gameState66.player.tricksWon;
+      let newOpponentTricks = gameState66.opponent.tricksWon;
+      
+      if (winner === 'player') {
+        newPlayerTricks = [...newPlayerTricks, [gameState66.currentTrick.player!, aiCard]];
+      } else {
+        newOpponentTricks = [...newOpponentTricks, [gameState66.currentTrick.player!, aiCard]];
+      }
+
+      const playerScore = gameState66.player.score + (winner === 'player' ? calculateTrickPoints([gameState66.currentTrick.player!, aiCard]) : 0);
+      const opponentScore = gameState66.opponent.score + (winner === 'opponent' ? calculateTrickPoints([gameState66.currentTrick.player!, aiCard]) : 0);
+
+      const gameEnded66 = playerScore >= 66 || opponentScore >= 66;
+
+      setGameState66(prev => prev ? {
+        ...prev,
+        opponent: { ...prev.opponent, hand: newOpponentHand, tricksWon: newOpponentTricks, score: opponentScore },
+        player: { ...prev.player, tricksWon: newPlayerTricks, score: playerScore },
+        currentTrick: { player: null, opponent: aiCard },
+        trickWinner: winner,
+        gamePhase: gameEnded66 ? 'gameEnd' : (winner === 'player' ? 'playerTurn' : 'opponentTurn'),
+      } : null);
+
+      setIsProcessing(false);
+      if (gameEnded66) setShowResultModal(true);
+    }, 800);
+  };
+
   const finishRound = () => {
+    if (gameType === '66') {
+      // 66 game ends when someone reaches 66 points
+      return;
+    }
+
     const playerValue = calculateHandValue(gameState.player.cards);
     const opponentCards = gameState.opponent.cards.map((c) => ({ ...c, faceUp: true }));
     const opponentValue = calculateHandValue(opponentCards);
