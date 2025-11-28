@@ -311,7 +311,7 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
       
       // Calculate marriage bonus for opponent
       let aiMarriageBonus = 0;
-      if (!gameState66.currentTrick.player || gameState66.roundNumber > 1) {
+      if (gameState66.roundNumber > 1) {
         aiMarriageBonus = calculateMarriageBonus(gameState66.opponent.hand, aiCard, gameState66.trump);
       }
       
@@ -330,7 +330,7 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
         ...prev,
         opponent: { ...prev.opponent, hand: newOpponentHand, tricksWon: newOpponentTricks, score: newOpponentScore },
         player: { ...prev.player, tricksWon: newPlayerTricks, score: newPlayerScore },
-        currentTrick: { player: null, opponent: null },
+        currentTrick: { player: gameState66.currentTrick.player, opponent: aiCard },
         trickWinner: winner,
         lastTrickWinner: winner,
         gamePhase: nextPhase,
@@ -338,7 +338,16 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
       } : null);
 
       setIsProcessing(false);
-      if (gameEnded66) setShowResultModal(true);
+      
+      // Delay before showing result to let player see the cards
+      aiTimerRef.current = setTimeout(() => {
+        setGameState66(prev => prev ? {
+          ...prev,
+          currentTrick: { player: null, opponent: null },
+          gamePhase: nextPhase,
+        } : null);
+        if (gameEnded66) setShowResultModal(true);
+      }, 1500);
     }, 800);
   };
 
@@ -558,12 +567,22 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
               </View>
             </View>
             
-            {gameState66.currentTrick.player ? (
+            {gameState66.currentTrick.player || gameState66.currentTrick.opponent ? (
               <View style={styles.trickDisplay66}>
-                <ThemedText style={styles.playedLabel} lightColor="#FFFFFF" darkColor="#FFFFFF">Oyunlanan Kart</ThemedText>
-                <View style={[styles.trickCardDisplay, { backgroundColor: colors.primary }]}>
-                  <ThemedText style={styles.trickCardText66}>{gameState66.currentTrick.player.rank}</ThemedText>
-                  <ThemedText style={styles.trickCardSuit66}>{gameState66.currentTrick.player.suit === 'hearts' ? '♥' : gameState66.currentTrick.player.suit === 'diamonds' ? '♦' : gameState66.currentTrick.player.suit === 'clubs' ? '♣' : '♠'}</ThemedText>
+                <ThemedText style={styles.playedLabel} lightColor="#FFFFFF" darkColor="#FFFFFF">Oyunlanan Kartlar</ThemedText>
+                <View style={styles.cardsPlayedRow}>
+                  {gameState66.currentTrick.player && (
+                    <View style={[styles.trickCardDisplay, { backgroundColor: colors.primary }]}>
+                      <ThemedText style={styles.trickCardText66}>{gameState66.currentTrick.player.rank}</ThemedText>
+                      <ThemedText style={styles.trickCardSuit66}>{gameState66.currentTrick.player.suit === 'hearts' ? '♥' : gameState66.currentTrick.player.suit === 'diamonds' ? '♦' : gameState66.currentTrick.player.suit === 'clubs' ? '♣' : '♠'}</ThemedText>
+                    </View>
+                  )}
+                  {gameState66.currentTrick.opponent && (
+                    <View style={[styles.trickCardDisplay, { backgroundColor: '#C0A080' }]}>
+                      <ThemedText style={styles.trickCardText66}>{gameState66.currentTrick.opponent.rank}</ThemedText>
+                      <ThemedText style={styles.trickCardSuit66}>{gameState66.currentTrick.opponent.suit === 'hearts' ? '♥' : gameState66.currentTrick.opponent.suit === 'diamonds' ? '♦' : gameState66.currentTrick.opponent.suit === 'clubs' ? '♣' : '♠'}</ThemedText>
+                    </View>
+                  )}
                 </View>
               </View>
             ) : null}
@@ -1153,6 +1172,11 @@ const styles = StyleSheet.create({
   trickDisplay66: {
     alignItems: 'center',
   },
+  cardsPlayedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
   trickCardDisplay: {
     width: 45,
     height: 65,
@@ -1231,10 +1255,10 @@ const styles = StyleSheet.create({
   tableCenter: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: Spacing.xl,
-    paddingHorizontal: Spacing["2xl"],
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.lg,
-    marginVertical: Spacing.lg,
+    marginVertical: Spacing.xs,
   },
   roundInfo: {
     alignItems: "center",
