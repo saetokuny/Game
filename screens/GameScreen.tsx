@@ -83,10 +83,12 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
   }, [gameState.currentRound, navigation]);
 
   useEffect(() => {
-    if (gameState.gamePhase === "opponentTurn" && !isProcessing) {
+    if (gameType === '66' && gameState66?.gamePhase === "opponentTurn" && !isProcessing) {
+      runAITurn();
+    } else if (gameType !== '66' && gameState.gamePhase === "opponentTurn" && !isProcessing) {
       runAITurn();
     }
-  }, [gameState.gamePhase, isProcessing]);
+  }, [gameState.gamePhase, gameState66?.gamePhase, isProcessing]);
 
   useEffect(() => {
     return () => {
@@ -239,7 +241,7 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
   };
 
   const runAITurn66 = () => {
-    if (!gameState66) return;
+    if (!gameState66 || !gameState66.currentTrick.player) return;
     setIsProcessing(true);
 
     aiTimerRef.current = setTimeout(() => {
@@ -249,28 +251,39 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
         settings?.aiDifficulty || 'medium'
       );
 
-      const newOpponentHand = gameState66.opponent.hand.filter(c => c !== aiCard);
-      const winner = determineTrickWinner(gameState66.currentTrick.player!, aiCard, gameState66.trump);
+      if (!aiCard) {
+        setIsProcessing(false);
+        return;
+      }
+
+      const newOpponentHand = gameState66.opponent.hand.filter((c, idx) => {
+        return !(c.suit === aiCard.suit && c.rank === aiCard.rank && gameState66.opponent.hand.indexOf(c) === idx);
+      });
+
+      const winner = determineTrickWinner(gameState66.currentTrick.player, aiCard, gameState66.trump);
+      const trickCards = [gameState66.currentTrick.player, aiCard];
+      const trickPoints = calculateTrickPoints(trickCards);
       
+      let newPlayerScore = gameState66.player.score;
+      let newOpponentScore = gameState66.opponent.score;
       let newPlayerTricks = gameState66.player.tricksWon;
       let newOpponentTricks = gameState66.opponent.tricksWon;
       
       if (winner === 'player') {
-        newPlayerTricks = [...newPlayerTricks, [gameState66.currentTrick.player!, aiCard]];
+        newPlayerScore += trickPoints;
+        newPlayerTricks = [...newPlayerTricks, trickCards];
       } else {
-        newOpponentTricks = [...newOpponentTricks, [gameState66.currentTrick.player!, aiCard]];
+        newOpponentScore += trickPoints;
+        newOpponentTricks = [...newOpponentTricks, trickCards];
       }
 
-      const playerScore = gameState66.player.score + (winner === 'player' ? calculateTrickPoints([gameState66.currentTrick.player!, aiCard]) : 0);
-      const opponentScore = gameState66.opponent.score + (winner === 'opponent' ? calculateTrickPoints([gameState66.currentTrick.player!, aiCard]) : 0);
-
-      const gameEnded66 = playerScore >= 66 || opponentScore >= 66;
+      const gameEnded66 = newPlayerScore >= 66 || newOpponentScore >= 66;
 
       setGameState66(prev => prev ? {
         ...prev,
-        opponent: { ...prev.opponent, hand: newOpponentHand, tricksWon: newOpponentTricks, score: opponentScore },
-        player: { ...prev.player, tricksWon: newPlayerTricks, score: playerScore },
-        currentTrick: { player: null, opponent: aiCard },
+        opponent: { ...prev.opponent, hand: newOpponentHand, tricksWon: newOpponentTricks, score: newOpponentScore },
+        player: { ...prev.player, tricksWon: newPlayerTricks, score: newPlayerScore },
+        currentTrick: { player: null, opponent: null },
         trickWinner: winner,
         gamePhase: gameEnded66 ? 'gameEnd' : (winner === 'player' ? 'playerTurn' : 'opponentTurn'),
       } : null);
@@ -359,12 +372,19 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
     navigation.goBack();
   };
 
-  const playerValue = calculateHandValue(gameState.player.cards);
-  const opponentValue = calculateHandValue(
+  const playerValue = gameType === '66' && gameState66 ? gameState66.player.score : calculateHandValue(gameState.player.cards);
+  const opponentValue = gameType === '66' && gameState66 ? gameState66.opponent.score : calculateHandValue(
     gameState.opponent.cards.filter((c) => c.faceUp)
   );
 
   const getResultTitle = () => {
+    if (gameType === '66' && gameState66?.gamePhase === 'gameEnd') {
+      if (playerValue >= 66 && opponentValue < 66) return t('youWin', language);
+      if (opponentValue >= 66 && playerValue < 66) return t('aiWins', language);
+      if (playerValue >= 66 && opponentValue >= 66) {
+        return playerValue > opponentValue ? t('youWin', language) : t('aiWins', language);
+      }
+    }
     if (gameEnded) {
       const { playerTotalWins, opponentTotalWins } = gameState;
       if (playerTotalWins > opponentTotalWins) return t('youWinGame', language);
@@ -387,6 +407,177 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
     if (roundResult === "opponent") return colors.error;
     return colors.draw;
   };
+
+  if (gameType === '66' && gameState66) {
+    return (
+      <ThemedView
+        style={[
+          styles.container,
+          {
+            paddingTop: headerHeight + Spacing.lg,
+            paddingBottom: insets.bottom + Spacing.xl,
+          },
+        ]}
+      >
+        <Pressable
+          onPress={() => setShowPauseModal(true)}
+          style={({ pressed }) => [
+            styles.pauseButton,
+            {
+              backgroundColor: colors.backgroundSecondary,
+              opacity: pressed ? 0.7 : 1,
+              top: headerHeight + Spacing.sm,
+            },
+          ]}
+        >
+          <Feather name="pause" size={24} color={theme.text} />
+        </Pressable>
+
+        <View style={styles.gameArea}>
+          <View style={styles.opponentSection}>
+            <ThemedText style={styles.playerLabel}>{t('ai', language)}</ThemedText>
+            <View style={styles.cardsRow}>
+              {gameState66.opponent.hand.map((card, index) => (
+                <View key={`opp-${index}`} style={styles.cardWrapper}>
+                  <View style={[styles.card66, { backgroundColor: colors.backgroundSecondary }]}>
+                    <ThemedText style={styles.card66Text}>?</ThemedText>
+                  </View>
+                </View>
+              ))}
+            </View>
+            <ScoreDisplay
+              value={gameState66.opponent.score}
+              label={t('score', language)}
+              isWinner={gameState66.gamePhase === 'gameEnd' && gameState66.opponent.score > gameState66.player.score}
+              isLoser={gameState66.gamePhase === 'gameEnd' && gameState66.opponent.score < gameState66.player.score}
+              isDraw={gameState66.gamePhase === 'gameEnd' && gameState66.opponent.score === gameState66.player.score}
+            />
+          </View>
+
+          <View style={[styles.tableCenter, { backgroundColor: colors.cardTable }]}>
+            <View style={styles.roundInfo}>
+              <ThemedText style={styles.roundText} lightColor="#FFFFFF" darkColor="#FFFFFF">
+                {t('score', language)}: {gameState66.player.score}/66
+              </ThemedText>
+              <View style={styles.scoreBoard}>
+                <ThemedText style={styles.scoreBoardText} lightColor="#D4AF37" darkColor="#D4AF37">
+                  {t('you', language)}: {gameState66.player.score}
+                </ThemedText>
+                <ThemedText style={styles.scoreBoardText} lightColor="#FFFFFF" darkColor="#FFFFFF">
+                  {" - "}
+                </ThemedText>
+                <ThemedText style={styles.scoreBoardText} lightColor="#D4AF37" darkColor="#D4AF37">
+                  {t('ai', language)}: {gameState66.opponent.score}
+                </ThemedText>
+              </View>
+            </View>
+            {gameState66.currentTrick.player ? (
+              <View style={styles.trickDisplay}>
+                <View style={[styles.trickCard, { backgroundColor: colors.primary }]}>
+                  <ThemedText style={styles.trickCardText}>{gameState66.currentTrick.player.rank}</ThemedText>
+                  <ThemedText style={styles.trickCardSuit}>{gameState66.currentTrick.player.suit.charAt(0)}</ThemedText>
+                </View>
+              </View>
+            ) : null}
+          </View>
+
+          <View style={styles.playerSection}>
+            <ScoreDisplay
+              value={gameState66.player.score}
+              label={t('yourScore', language)}
+              isWinner={gameState66.gamePhase === 'gameEnd' && gameState66.player.score > gameState66.opponent.score}
+              isLoser={gameState66.gamePhase === 'gameEnd' && gameState66.player.score < gameState66.opponent.score}
+              isDraw={gameState66.gamePhase === 'gameEnd' && gameState66.player.score === gameState66.opponent.score}
+            />
+            <View style={styles.cardsRow}>
+              {gameState66.player.hand.map((card, index) => (
+                <Pressable
+                  key={`player-${index}`}
+                  onPress={() => playCard66(card)}
+                  disabled={gameState66.gamePhase !== 'playerTurn' || isProcessing}
+                  style={({ pressed }) => [
+                    styles.cardWrapper,
+                    {
+                      opacity: pressed ? 0.7 : gameState66.gamePhase === 'playerTurn' ? 1 : 0.5,
+                    },
+                  ]}
+                >
+                  <View style={[styles.card66, { backgroundColor: colors.primary }]}>
+                    <ThemedText style={styles.card66Rank}>{card.rank}</ThemedText>
+                    <ThemedText style={styles.card66Suit}>{card.suit.charAt(0).toUpperCase()}</ThemedText>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+            <ThemedText style={styles.playerLabel}>{t('you', language)}</ThemedText>
+          </View>
+        </View>
+
+        <Modal
+          visible={showPauseModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowPauseModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <ThemedView style={styles.pauseModalContent}>
+              <ThemedText style={styles.modalTitle}>{t('gamePaused', language)}</ThemedText>
+              <GameButton
+                title={t('resume', language)}
+                onPress={() => setShowPauseModal(false)}
+                variant="primary"
+                style={styles.modalButton}
+              />
+              <GameButton
+                title={t('quitGame', language)}
+                onPress={handleQuit}
+                variant="danger"
+                style={styles.modalButton}
+              />
+            </ThemedView>
+          </View>
+        </Modal>
+
+        <Modal
+          visible={showResultModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => {}}
+        >
+          <View style={styles.modalOverlay}>
+            <ThemedView style={styles.resultModalContent}>
+              <ThemedText
+                style={[styles.resultTitle, { color: getResultColor() }]}
+                lightColor={getResultColor()}
+                darkColor={getResultColor()}
+              >
+                {getResultTitle()}
+              </ThemedText>
+
+              <View style={styles.resultScores}>
+                <View style={styles.resultScoreItem}>
+                  <ThemedText style={styles.resultScoreLabel}>{t('you', language)}</ThemedText>
+                  <ThemedText style={styles.resultScoreValue}>{gameState66.player.score}</ThemedText>
+                </View>
+                <ThemedText style={styles.resultVs}>vs</ThemedText>
+                <View style={styles.resultScoreItem}>
+                  <ThemedText style={styles.resultScoreLabel}>{t('ai', language)}</ThemedText>
+                  <ThemedText style={styles.resultScoreValue}>{gameState66.opponent.score}</ThemedText>
+                </View>
+              </View>
+
+              <GameButton
+                title={t('mainMenu', language)}
+                onPress={handleQuit}
+                variant="secondary"
+                style={styles.modalButton}
+              />
+            </ThemedView>
+          </View>
+        </Modal>
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView
@@ -651,6 +842,47 @@ const styles = StyleSheet.create({
   },
   cardWrapper: {
     marginHorizontal: Spacing.xs,
+  },
+  card66: {
+    width: 50,
+    height: 70,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#D4AF37',
+  },
+  card66Text: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  card66Rank: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#D4AF37',
+  },
+  card66Suit: {
+    fontSize: 10,
+    color: '#D4AF37',
+    marginTop: Spacing.xs,
+  },
+  trickDisplay: {
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+  },
+  trickCard: {
+    width: 60,
+    height: 85,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#D4AF37',
+  },
+  trickCardText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#D4AF37',
   },
   tableCenter: {
     alignItems: "center",
