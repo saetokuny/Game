@@ -349,6 +349,9 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
               opponent: { ...prev.opponent, cards: newCards, hasDrawn: true },
             }));
             triggerHaptic();
+            if (settings?.soundEnabled) {
+              audioSystem.playSound('cardDraw', settings.musicVolume);
+            }
             aiLoop(newCards, remainingDeck, true);
           } else {
             finishRound();
@@ -389,6 +392,10 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
           aiMarriageBonus = calculateMarriageBonus(gameState66.opponent.hand, aiCard, gameState66.trump);
         }
 
+        if (settings?.soundEnabled) {
+          audioSystem.playSound('cardPlay', settings.musicVolume);
+        }
+
         setGameState66(prev => prev ? {
           ...prev,
           opponent: { ...prev.opponent, hand: newOpponentHand },
@@ -420,6 +427,10 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
       if (!aiCard) {
         setIsProcessing(false);
         return;
+      }
+
+      if (settings?.soundEnabled) {
+        audioSystem.playSound('cardPlay', settings.musicVolume);
       }
 
       const newOpponentHand = gameState66.opponent.hand.filter((c, idx) => {
@@ -543,6 +554,9 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
           ? "loss"
           : "draw";
       updateGameStats(finalResult);
+      if (settings?.soundEnabled) {
+        audioSystem.playSound(finalResult === 'win' ? 'cardWin' : finalResult === 'loss' ? 'cardLose' : 'cardPlay', settings.musicVolume);
+      }
     }
 
     triggerHaptic(Haptics.ImpactFeedbackStyle.Heavy);

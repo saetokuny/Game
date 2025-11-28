@@ -407,6 +407,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: "center",
   },
+  sliderContainer: {
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    marginTop: Spacing.md,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  volumeValue: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
   spacer: {
     height: Spacing["2xl"],
   },
