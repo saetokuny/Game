@@ -230,18 +230,65 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
 
     const updatedPlayerHand = drawnCard ? [...newHand, drawnCard] : newHand;
 
-    setGameState66(prev => prev ? {
-      ...prev,
-      currentTrick: { player: card, opponent: prev.currentTrick.opponent },
-      player: { ...prev.player, hand: updatedPlayerHand, score: prev.player.score + marriageBonus },
-      playerMarriageBonus: marriageBonus,
-      deck: updatedDeck,
-      gamePhase: 'opponentTurn',
-    } : null);
+    // If AI already played (opponent card set), calculate winner and clear trick
+    if (gameState66.currentTrick.opponent && !gameState66.currentTrick.player) {
+      const winner = determineTrickWinner(card, gameState66.currentTrick.opponent, gameState66.trump);
+      const trickCards = [card, gameState66.currentTrick.opponent];
+      const trickPoints = calculateTrickPoints(trickCards);
+      
+      let newPlayerScore = gameState66.player.score + marriageBonus;
+      let newOpponentScore = gameState66.opponent.score;
+      let newPlayerTricks = gameState66.player.tricksWon;
+      let newOpponentTricks = gameState66.opponent.tricksWon;
+      
+      if (winner === 'player') {
+        newPlayerScore += trickPoints;
+        newPlayerTricks = [...newPlayerTricks, trickCards];
+      } else {
+        newOpponentScore += trickPoints + gameState66.opponentMarriageBonus;
+        newOpponentTricks = [...newOpponentTricks, trickCards];
+      }
 
-    setTimeout(() => {
-      setIsProcessing(false);
-    }, 300);
+      const gameEnded66 = newPlayerScore >= 66 || newOpponentScore >= 66;
+      const nextPhase = gameEnded66 ? 'gameEnd' : (winner === 'player' ? 'playerTurn' : 'opponentTurn');
+
+      setGameState66(prev => prev ? {
+        ...prev,
+        player: { ...prev.player, hand: updatedPlayerHand, score: newPlayerScore, tricksWon: newPlayerTricks },
+        opponent: { ...prev.opponent, score: newOpponentScore, tricksWon: newOpponentTricks },
+        currentTrick: { player: null, opponent: null },
+        deck: updatedDeck,
+        gamePhase: nextPhase,
+        trickWinner: winner,
+        lastTrickWinner: winner,
+        opponentMarriageBonus: 0,
+        playerMarriageBonus: marriageBonus,
+      } : null);
+
+      setTimeout(() => {
+        setIsProcessing(false);
+      }, 300);
+      
+      if (gameEnded66) {
+        setTimeout(() => {
+          setShowResultModal(true);
+        }, 1500);
+      }
+    } else {
+      // Normal play: just play card and wait for opponent
+      setGameState66(prev => prev ? {
+        ...prev,
+        currentTrick: { player: card, opponent: prev.currentTrick.opponent },
+        player: { ...prev.player, hand: updatedPlayerHand, score: prev.player.score + marriageBonus },
+        playerMarriageBonus: marriageBonus,
+        deck: updatedDeck,
+        gamePhase: 'opponentTurn',
+      } : null);
+
+      setTimeout(() => {
+        setIsProcessing(false);
+      }, 300);
+    }
   };
 
   const handleStand = async () => {
