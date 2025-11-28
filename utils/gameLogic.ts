@@ -13,6 +13,7 @@ export interface Player {
   isDealer: boolean;
   hasFolded: boolean;
   hasStood: boolean;
+  hasDrawn: boolean;
 }
 
 export interface GameState {

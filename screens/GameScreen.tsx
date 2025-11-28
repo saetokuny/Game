@@ -121,12 +121,14 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
         cards: playerCards,
         hasFolded: false,
         hasStood: false,
+        hasDrawn: false,
       },
       opponent: {
         ...prev.opponent,
         cards: opponentCardsHidden,
         hasFolded: false,
         hasStood: false,
+        hasDrawn: false,
       },
       gamePhase: "playerTurn",
     }));
@@ -141,6 +143,11 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
     }
     
     if (gameState.gamePhase !== "playerTurn" || isProcessing) return;
+    
+    // Oicho-Kabu: Player can only draw once per round, max 3 cards total
+    if (gameState.player.hasDrawn || gameState.player.cards.length >= 3) {
+      return;
+    }
 
     setIsProcessing(true);
     await triggerHaptic();
@@ -157,7 +164,9 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
       player: {
         ...prev.player,
         cards: [...prev.player.cards, card],
+        hasDrawn: true,
       },
+      gamePhase: "opponentTurn",
     }));
 
     setTimeout(() => {
