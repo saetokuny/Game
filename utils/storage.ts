@@ -4,6 +4,8 @@ const STORAGE_KEYS = {
   PLAYER_PROFILE: '@oicho_kabu_profile',
   GAME_STATS: '@oicho_kabu_stats',
   SETTINGS: '@oicho_kabu_settings',
+  LANGUAGE: '@oicho_kabu_language',
+  CARD_DECK: '@oicho_kabu_card_deck',
 };
 
 export interface PlayerProfile {
@@ -128,8 +130,46 @@ export async function clearAllData(): Promise<void> {
       STORAGE_KEYS.PLAYER_PROFILE,
       STORAGE_KEYS.GAME_STATS,
       STORAGE_KEYS.SETTINGS,
+      STORAGE_KEYS.LANGUAGE,
+      STORAGE_KEYS.CARD_DECK,
     ]);
   } catch (error) {
     console.error('Error clearing all data:', error);
+  }
+}
+
+export async function getLanguage(): Promise<'en' | 'tr'> {
+  try {
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.LANGUAGE);
+    return (data as 'en' | 'tr') || 'en';
+  } catch (error) {
+    console.error('Error reading language:', error);
+    return 'en';
+  }
+}
+
+export async function saveLanguage(language: 'en' | 'tr'): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.LANGUAGE, language);
+  } catch (error) {
+    console.error('Error saving language:', error);
+  }
+}
+
+export async function getCardDeck(): Promise<'european' | 'japanese'> {
+  try {
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.CARD_DECK);
+    return (data as 'european' | 'japanese') || 'european';
+  } catch (error) {
+    console.error('Error reading card deck:', error);
+    return 'european';
+  }
+}
+
+export async function saveCardDeck(deck: 'european' | 'japanese'): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEYS.CARD_DECK, deck);
+  } catch (error) {
+    console.error('Error saving card deck:', error);
   }
 }

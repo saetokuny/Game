@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { StyleSheet, View, Image } from "react-native";
+import { StyleSheet, View, Image, Pressable, ScrollView } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderHeight } from "@react-navigation/elements";
+import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -10,19 +11,23 @@ import { ThemedView } from "@/components/ThemedView";
 import { GameButton } from "@/components/GameButton";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, Colors, BorderRadius } from "@/constants/theme";
-import { getGameStats, GameStats, getSettings } from "@/utils/storage";
+import { getGameStats, GameStats, getSettings, getLanguage, saveLanguage, Language } from "@/utils/storage";
+import { t } from "@/utils/localization";
 
 interface HomeScreenProps {
   navigation: any;
+  language: Language;
+  onLanguageChange: (language: Language) => void;
 }
 
-export default function HomeScreen({ navigation }: HomeScreenProps) {
+export default function HomeScreen({ navigation, language, onLanguageChange }: HomeScreenProps) {
   const { isDark } = useTheme();
   const colors = isDark ? Colors.dark : Colors.light;
   const insets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const [stats, setStats] = useState<GameStats | null>(null);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -42,7 +47,16 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     if (vibrationEnabled) {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    navigation.navigate("Game");
+    navigation.navigate("CardDeckSelection");
+  };
+
+  const handleLanguageChange = async (newLanguage: Language) => {
+    await saveLanguage(newLanguage);
+    onLanguageChange(newLanguage);
+    setShowLanguageMenu(false);
+    if (vibrationEnabled) {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
   };
 
   return (
@@ -55,6 +69,63 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         },
       ]}
     >
+      <Pressable
+        onPress={() => setShowLanguageMenu(!showLanguageMenu)}
+        style={({ pressed }) => [
+          styles.languageButton,
+          {
+            backgroundColor: colors.backgroundDefault,
+            opacity: pressed ? 0.7 : 1,
+          },
+        ]}
+      >
+        <Feather name="globe" size={18} color={colors.primary} />
+        <ThemedText style={styles.languageButtonText}>
+          {language === 'en' ? 'EN' : 'TR'}
+        </ThemedText>
+      </Pressable>
+
+      {showLanguageMenu ? (
+        <View style={[styles.languageMenu, { backgroundColor: colors.backgroundDefault }]}>
+          <Pressable
+            onPress={() => handleLanguageChange('en')}
+            style={({ pressed }) => [
+              styles.languageMenuItem,
+              {
+                backgroundColor: language === 'en' ? colors.primary : 'transparent',
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
+          >
+            <ThemedText
+              style={styles.languageMenuItemText}
+              lightColor={language === 'en' ? '#FFFFFF' : undefined}
+              darkColor={language === 'en' ? '#FFFFFF' : undefined}
+            >
+              English
+            </ThemedText>
+          </Pressable>
+          <Pressable
+            onPress={() => handleLanguageChange('tr')}
+            style={({ pressed }) => [
+              styles.languageMenuItem,
+              {
+                backgroundColor: language === 'tr' ? colors.primary : 'transparent',
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
+          >
+            <ThemedText
+              style={styles.languageMenuItemText}
+              lightColor={language === 'tr' ? '#FFFFFF' : undefined}
+              darkColor={language === 'tr' ? '#FFFFFF' : undefined}
+            >
+              Türkçe
+            </ThemedText>
+          </Pressable>
+        </View>
+      ) : null}
+
       <View style={styles.logoSection}>
         <View style={[styles.logoContainer, { backgroundColor: colors.primary }]}>
           <Image
@@ -63,22 +134,22 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             resizeMode="contain"
           />
         </View>
-        <ThemedText style={styles.title}>Oicho-Kabu</ThemedText>
+        <ThemedText style={styles.title}>{t('home', language)}</ThemedText>
         <ThemedText style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Traditional Japanese Card Game
+          {language === 'en' ? 'Traditional Japanese Card Game' : 'Geleneksel Japon Kart Oyunu'}
         </ThemedText>
       </View>
 
       <View style={styles.buttonSection}>
         <GameButton
-          title="Play vs AI"
+          title={t('playVsAI', language)}
           onPress={handlePlayAI}
           variant="primary"
           size="large"
           style={styles.mainButton}
         />
         <GameButton
-          title="Play vs Friend"
+          title={t('playVsFriend', language)}
           onPress={() => {}}
           variant="secondary"
           size="large"
@@ -86,7 +157,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
           disabled
         />
         <ThemedText style={[styles.comingSoon, { color: colors.textSecondary }]}>
-          Multiplayer coming soon
+          {t('comingSoon', language)}
         </ThemedText>
       </View>
 
@@ -97,7 +168,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               {stats.totalWins}
             </ThemedText>
             <ThemedText style={[styles.statLabel, { color: colors.textSecondary }]}>
-              Wins
+              {t('wins', language)}
             </ThemedText>
           </View>
           <View style={[styles.statDivider, { backgroundColor: colors.backgroundTertiary }]} />
@@ -106,7 +177,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               {stats.totalLosses}
             </ThemedText>
             <ThemedText style={[styles.statLabel, { color: colors.textSecondary }]}>
-              Losses
+              {t('losses', language)}
             </ThemedText>
           </View>
           <View style={[styles.statDivider, { backgroundColor: colors.backgroundTertiary }]} />
@@ -115,7 +186,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               {stats.totalDraws}
             </ThemedText>
             <ThemedText style={[styles.statLabel, { color: colors.textSecondary }]}>
-              Draws
+              {t('draws', language)}
             </ThemedText>
           </View>
         </View>
@@ -129,6 +200,41 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.xl,
     justifyContent: "space-between",
+    position: "relative",
+  },
+  languageButton: {
+    position: "absolute",
+    top: Spacing.lg,
+    right: Spacing.xl,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.xs,
+    zIndex: 10,
+  },
+  languageButtonText: {
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  languageMenu: {
+    position: "absolute",
+    top: Spacing.xl + 40,
+    right: Spacing.xl,
+    borderRadius: BorderRadius.md,
+    overflow: "hidden",
+    zIndex: 20,
+    minWidth: 120,
+  },
+  languageMenuItem: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  languageMenuItemText: {
+    textAlign: "center",
+    fontWeight: "500",
+    fontSize: 14,
   },
   logoSection: {
     alignItems: "center",

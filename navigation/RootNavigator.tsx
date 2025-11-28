@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -6,6 +6,7 @@ import { Feather } from "@expo/vector-icons";
 
 import HomeScreen from "@/screens/HomeScreen";
 import GameScreen from "@/screens/GameScreen";
+import CardDeckSelectionScreen from "@/screens/CardDeckSelectionScreen";
 import RulesScreen from "@/screens/RulesScreen";
 import SettingsScreen from "@/screens/SettingsScreen";
 import StatisticsScreen from "@/screens/StatisticsScreen";
@@ -16,9 +17,11 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Spacing, BorderRadius, Colors } from "@/constants/theme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Language, getLanguage } from "@/utils/storage";
 
 export type RootStackParamList = {
   Main: undefined;
+  CardDeckSelection: undefined;
   Game: undefined;
 };
 
@@ -76,7 +79,12 @@ function CustomDrawerContent({ navigation }: any) {
   );
 }
 
-function DrawerNavigator() {
+interface DrawerNavigatorProps {
+  language: Language;
+  onLanguageChange: (language: Language) => void;
+}
+
+function DrawerNavigator({ language, onLanguageChange }: DrawerNavigatorProps) {
   const { theme, isDark } = useTheme();
 
   return (
@@ -100,11 +108,14 @@ function DrawerNavigator() {
     >
       <Drawer.Screen
         name="Home"
-        component={HomeScreen}
         options={{
           headerTitle: () => <HeaderTitle title="Oicho-Kabu" />,
         }}
-      />
+      >
+        {(props) => (
+          <HomeScreen {...props} language={language} onLanguageChange={onLanguageChange} />
+        )}
+      </Drawer.Screen>
       <Drawer.Screen
         name="Rules"
         component={RulesScreen}
@@ -130,7 +141,15 @@ function DrawerNavigator() {
   );
 }
 
-export default function RootNavigator() {
+interface RootNavigatorProps {
+  language: Language;
+  onLanguageChange: (language: Language) => void;
+}
+
+export default function RootNavigator({
+  language,
+  onLanguageChange,
+}: RootNavigatorProps) {
   const { theme, isDark } = useTheme();
 
   return (
@@ -141,9 +160,24 @@ export default function RootNavigator() {
     >
       <Stack.Screen
         name="Main"
-        component={DrawerNavigator}
         options={{ headerShown: false }}
-      />
+      >
+        {(props) => (
+          <DrawerNavigator
+            {...props}
+            language={language}
+            onLanguageChange={onLanguageChange}
+          />
+        )}
+      </Stack.Screen>
+      <Stack.Screen
+        name="CardDeckSelection"
+        options={{
+          headerTitle: "Select Deck",
+        }}
+      >
+        {(props) => <CardDeckSelectionScreen {...props} language={language} />}
+      </Stack.Screen>
       <Stack.Screen
         name="Game"
         component={GameScreen}
