@@ -831,7 +831,6 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
             ) : null}
           </View>
         </View>
-      </View>
 
         <Modal
           visible={showPauseModal}
@@ -895,7 +894,7 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
             </ThemedView>
           </View>
         </Modal>
-      </ThemedView>
+      </View>
     );
   }
 
