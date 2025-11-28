@@ -447,35 +447,39 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
       
       // Delay before clearing to let player see the cards, then refill hands
       aiTimerRef.current = setTimeout(() => {
-        // Refill AI hand if deck available
-        let refillDeck = gameState66.deck;
-        let aiNewHand = newOpponentHand;
-        if (gameState66.deck.length > 0) {
-          const { card: drawnCard, remainingDeck } = drawCard66(gameState66.deck);
-          if (drawnCard) {
-            aiNewHand = [...newOpponentHand, drawnCard];
-            refillDeck = remainingDeck;
+        setGameState66(prev => {
+          if (!prev) return null;
+          
+          // Refill AI hand if deck available
+          let refillDeck = prev.deck;
+          let aiNewHand = newOpponentHand;
+          if (prev.deck.length > 0) {
+            const { card: drawnCard, remainingDeck } = drawCard66(prev.deck);
+            if (drawnCard) {
+              aiNewHand = [...newOpponentHand, drawnCard];
+              refillDeck = remainingDeck;
+            }
           }
-        }
 
-        // Refill player hand if deck available
-        let playerNewHand = gameState66.player.hand;
-        if (refillDeck.length > 0 && gameState66.player.hand.length < 6) {
-          const { card: drawnCard, remainingDeck } = drawCard66(refillDeck);
-          if (drawnCard) {
-            playerNewHand = [...gameState66.player.hand, drawnCard];
-            refillDeck = remainingDeck;
+          // Refill player hand if deck available
+          let playerNewHand = prev.player.hand;
+          if (refillDeck.length > 0 && prev.player.hand.length < 6) {
+            const { card: drawnCard, remainingDeck } = drawCard66(refillDeck);
+            if (drawnCard) {
+              playerNewHand = [...prev.player.hand, drawnCard];
+              refillDeck = remainingDeck;
+            }
           }
-        }
 
-        setGameState66(prev => prev ? {
-          ...prev,
-          currentTrick: { player: null, opponent: null },
-          gamePhase: nextPhase,
-          opponent: { ...prev.opponent, hand: aiNewHand },
-          player: { ...prev.player, hand: playerNewHand },
-          deck: refillDeck,
-        } : null);
+          return {
+            ...prev,
+            currentTrick: { player: null, opponent: null },
+            gamePhase: nextPhase,
+            opponent: { ...prev.opponent, hand: aiNewHand },
+            player: { ...prev.player, hand: playerNewHand },
+            deck: refillDeck,
+          };
+        });
         if (gameEnded66) setShowResultModal(true);
       }, 1500);
     }, 800);
@@ -755,13 +759,27 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
                         </ThemedText>
                       </View>
                       <View style={styles.faceCardCenter}>
-                        <View style={[styles.portraitFrame, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
-                          <View style={styles.portraitContent}>
-                            <ThemedText style={[styles.portraitRank, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
-                              {card.rank}
-                            </ThemedText>
+                        {card.rank === 'J' && (
+                          <View style={[styles.faceJackFigure, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
+                            <View style={[styles.jackHead, { backgroundColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]} />
+                            <View style={[styles.jackBody, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]} />
+                            <View style={[styles.jackLegs, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]} />
                           </View>
-                        </View>
+                        )}
+                        {card.rank === 'Q' && (
+                          <View style={[styles.faceQueenFigure, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
+                            <View style={[styles.queenHead, { backgroundColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]} />
+                            <View style={[styles.queenCrown, { borderTopColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]} />
+                            <View style={[styles.queenDress, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]} />
+                          </View>
+                        )}
+                        {card.rank === 'K' && (
+                          <View style={[styles.faceKingFigure, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
+                            <View style={[styles.kingHead, { backgroundColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]} />
+                            <View style={[styles.kingCrownLarge, { borderTopColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]} />
+                            <View style={[styles.kingRobe, { borderColor: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]} />
+                          </View>
+                        )}
                       </View>
                       <View style={[styles.cardCornerBottom, { transform: [{ rotate: '180deg' }] }]}>
                         <ThemedText style={[styles.cardCornerRank, { color: card.suit === 'hearts' || card.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
@@ -1212,6 +1230,91 @@ const styles = StyleSheet.create({
   numericCardRank: {
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  faceJackFigure: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 32,
+    borderWidth: 1,
+    borderRadius: 2,
+    paddingVertical: 2,
+  },
+  jackHead: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginBottom: 2,
+  },
+  jackBody: {
+    width: 6,
+    height: 10,
+    borderWidth: 1,
+    borderRadius: 1,
+    marginBottom: 2,
+  },
+  jackLegs: {
+    width: 6,
+    height: 4,
+    borderBottomWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderRadius: 1,
+  },
+  faceQueenFigure: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 32,
+    borderWidth: 1,
+    borderRadius: 2,
+    paddingVertical: 2,
+  },
+  queenHead: {
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
+    marginBottom: 1,
+  },
+  queenCrown: {
+    width: 12,
+    height: 5,
+    borderTopWidth: 1.5,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    marginBottom: 2,
+  },
+  queenDress: {
+    width: 8,
+    height: 10,
+    borderWidth: 1,
+    borderRadius: 1,
+  },
+  faceKingFigure: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 32,
+    borderWidth: 1,
+    borderRadius: 2,
+    paddingVertical: 2,
+  },
+  kingHead: {
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
+    marginBottom: 1,
+  },
+  kingCrownLarge: {
+    width: 13,
+    height: 6,
+    borderTopWidth: 1.5,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    marginBottom: 2,
+  },
+  kingRobe: {
+    width: 10,
+    height: 10,
+    borderWidth: 1,
+    borderRadius: 2,
   },
   scoreBoard66: {
     flexDirection: 'row',
