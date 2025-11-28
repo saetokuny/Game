@@ -510,51 +510,60 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
           </View>
 
           <View style={[styles.tableCenter, { backgroundColor: colors.cardTable }]}>
-            <View style={styles.roundInfo}>
-              <ThemedText style={styles.roundText} lightColor="#FFFFFF" darkColor="#FFFFFF">
-                {t('score', language)}: {gameState66.player.score}/66
-              </ThemedText>
-              <View style={styles.scoreBoard}>
-                <ThemedText style={styles.scoreBoardText} lightColor="#D4AF37" darkColor="#D4AF37">
-                  {t('you', language)}: {gameState66.player.score}
+            <View style={styles.scoreBoard66}>
+              <View style={styles.scorePair}>
+                <ThemedText style={styles.scoreLabel} lightColor="#FFFFFF" darkColor="#FFFFFF">
+                  {t('you', language)}
                 </ThemedText>
-                <ThemedText style={styles.scoreBoardText} lightColor="#FFFFFF" darkColor="#FFFFFF">
-                  {" - "}
+                <ThemedText style={styles.scoreValue} lightColor="#FFD700" darkColor="#FFD700">
+                  {gameState66.player.score}
                 </ThemedText>
-                <ThemedText style={styles.scoreBoardText} lightColor="#D4AF37" darkColor="#D4AF37">
-                  {t('ai', language)}: {gameState66.opponent.score}
+              </View>
+              
+              <View style={styles.divider} />
+              
+              <ThemedText style={styles.vsText} lightColor="#FFFFFF" darkColor="#FFFFFF">/66</ThemedText>
+              
+              <View style={styles.divider} />
+              
+              <View style={styles.scorePair}>
+                <ThemedText style={styles.scoreLabel} lightColor="#FFFFFF" darkColor="#FFFFFF">
+                  {t('ai', language)}
+                </ThemedText>
+                <ThemedText style={styles.scoreValue} lightColor="#FFD700" darkColor="#FFD700">
+                  {gameState66.opponent.score}
                 </ThemedText>
               </View>
             </View>
             
-            <View style={styles.trumpDisplay}>
-              {gameState66.trump ? (
-                <View>
-                  <ThemedText style={styles.trumpLabel} lightColor="#FFFFFF" darkColor="#FFFFFF">Koz</ThemedText>
-                  <View style={[styles.trumpCard, { backgroundColor: '#FFFFFF', borderColor: '#333333', borderWidth: 2 }]}>
-                    <ThemedText style={[styles.trumpCardText, { color: gameState66.trump.suit === 'hearts' || gameState66.trump.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
-                      {gameState66.trump.rank}
-                    </ThemedText>
-                    <ThemedText style={[styles.trumpCardSuit, { color: gameState66.trump.suit === 'hearts' || gameState66.trump.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
-                      {gameState66.trump.suit === 'hearts' ? '♥' : gameState66.trump.suit === 'diamonds' ? '♦' : gameState66.trump.suit === 'clubs' ? '♣' : '♠'}
-                    </ThemedText>
-                  </View>
-                </View>
-              ) : null}
+            <View style={styles.gameInfo}>
+              <View style={styles.trumpDisplaySmall}>
+                {gameState66.trump ? (
+                  <>
+                    <ThemedText style={styles.infoLabel} lightColor="#FFFFFF" darkColor="#FFFFFF">{t('trump', language)}</ThemedText>
+                    <View style={[styles.trumpCardSmall, { backgroundColor: '#FFFFFF', borderColor: '#333333', borderWidth: 1.5 }]}>
+                      <ThemedText style={[styles.trumpCardTextSmall, { color: gameState66.trump.suit === 'hearts' || gameState66.trump.suit === 'diamonds' ? '#FF0000' : '#000000' }]}>
+                        {gameState66.trump.rank}{gameState66.trump.suit === 'hearts' ? '♥' : gameState66.trump.suit === 'diamonds' ? '♦' : gameState66.trump.suit === 'clubs' ? '♣' : '♠'}
+                      </ThemedText>
+                    </View>
+                  </>
+                ) : null}
+              </View>
+              
+              <View style={styles.deckDisplaySmall}>
+                <ThemedText style={styles.infoLabel} lightColor="#FFFFFF" darkColor="#FFFFFF">{t('remaining', language)}</ThemedText>
+                <ThemedText style={styles.deckCountSmall} lightColor="#FFD700" darkColor="#FFD700">
+                  {gameState66.deck.length}
+                </ThemedText>
+              </View>
             </View>
             
-            <ThemedText style={styles.deckCount} lightColor="#FFFFFF" darkColor="#FFFFFF">
-              {t('trump', language)}: {gameState66.trump?.rank}{gameState66.trump?.suit === 'hearts' ? '♥' : gameState66.trump?.suit === 'diamonds' ? '♦' : gameState66.trump?.suit === 'clubs' ? '♣' : '♠'}
-            </ThemedText>
-            <ThemedText style={styles.deckCount} lightColor="#FFFFFF" darkColor="#FFFFFF">
-              {t('remaining', language)}: {gameState66.deck.length}
-            </ThemedText>
-            
             {gameState66.currentTrick.player ? (
-              <View style={styles.trickDisplay}>
-                <View style={[styles.trickCard, { backgroundColor: colors.primary }]}>
-                  <ThemedText style={styles.trickCardText}>{gameState66.currentTrick.player.rank}</ThemedText>
-                  <ThemedText style={styles.trickCardSuit}>{gameState66.currentTrick.player.suit.charAt(0)}</ThemedText>
+              <View style={styles.trickDisplay66}>
+                <ThemedText style={styles.playedLabel} lightColor="#FFFFFF" darkColor="#FFFFFF">Oyunlanan Kart</ThemedText>
+                <View style={[styles.trickCardDisplay, { backgroundColor: colors.primary }]}>
+                  <ThemedText style={styles.trickCardText66}>{gameState66.currentTrick.player.rank}</ThemedText>
+                  <ThemedText style={styles.trickCardSuit66}>{gameState66.currentTrick.player.suit === 'hearts' ? '♥' : gameState66.currentTrick.player.suit === 'diamonds' ? '♦' : gameState66.currentTrick.player.suit === 'clubs' ? '♣' : '♠'}</ThemedText>
                 </View>
               </View>
             ) : null}
@@ -971,13 +980,16 @@ const styles = StyleSheet.create({
   gameArea: {
     flex: 1,
     justifyContent: "space-between",
+    paddingHorizontal: Spacing.md,
   },
   opponentSection: {
     alignItems: "center",
-    paddingTop: Spacing["3xl"],
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.sm,
   },
   playerSection: {
     alignItems: "center",
+    paddingBottom: Spacing.sm,
   },
   playerLabel: {
     fontSize: 14,
@@ -1074,32 +1086,94 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
-  trumpDisplay: {
+  scoreBoard66: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: Spacing.sm,
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
-  trumpLabel: {
-    fontSize: 11,
-    fontWeight: '600',
+  scorePair: {
+    alignItems: 'center',
+  },
+  scoreLabel: {
+    fontSize: 12,
+    fontWeight: '500',
     marginBottom: 2,
   },
-  trumpCard: {
-    width: 40,
-    height: 60,
+  scoreValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  vsText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginHorizontal: Spacing.sm,
+  },
+  divider: {
+    width: 1.5,
+    height: 40,
+    backgroundColor: '#D4AF37',
+    marginHorizontal: Spacing.md,
+  },
+  gameInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.md,
+  },
+  trumpDisplaySmall: {
+    alignItems: 'center',
+  },
+  trumpCardSmall: {
+    width: 35,
+    height: 55,
+    borderRadius: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trumpCardTextSmall: {
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  deckDisplaySmall: {
+    alignItems: 'center',
+  },
+  deckCountSmall: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  infoLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+    marginBottom: 4,
+    opacity: 0.8,
+  },
+  trickDisplay66: {
+    alignItems: 'center',
+  },
+  trickCardDisplay: {
+    width: 45,
+    height: 65,
     borderRadius: 3,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  trumpCardText: {
-    fontSize: 16,
+  trickCardText66: {
+    fontSize: 18,
     fontWeight: 'bold',
+    color: '#FFFFFF',
   },
-  trumpCardSuit: {
-    fontSize: 12,
+  trickCardSuit66: {
+    fontSize: 14,
+    color: '#FFFFFF',
   },
-  deckCount: {
-    fontSize: 12,
-    marginVertical: Spacing.xs,
+  playedLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginBottom: 4,
+    opacity: 0.8,
   },
   exchangeButton: {
     marginTop: Spacing.md,
