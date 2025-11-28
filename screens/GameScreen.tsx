@@ -206,11 +206,23 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
       marriageBonus = calculateMarriageBonus(gameState66.player.hand, card, gameState66.trump);
     }
 
+    // Draw a card after playing
+    let updatedDeck = gameState66.deck;
+    let drawnCard: Card66 | null = null;
+    if (gameState66.deck.length > 0) {
+      const { card: drawn, remainingDeck } = drawCard66(gameState66.deck);
+      drawnCard = drawn;
+      updatedDeck = remainingDeck;
+    }
+
+    const updatedPlayerHand = drawnCard ? [...newHand, drawnCard] : newHand;
+
     setGameState66(prev => prev ? {
       ...prev,
       currentTrick: { player: card, opponent: null },
-      player: { ...prev.player, hand: newHand, score: prev.player.score + marriageBonus },
+      player: { ...prev.player, hand: updatedPlayerHand, score: prev.player.score + marriageBonus },
       playerMarriageBonus: marriageBonus,
+      deck: updatedDeck,
       gamePhase: 'opponentTurn',
     } : null);
 
@@ -368,12 +380,36 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
 
       setIsProcessing(false);
       
-      // Delay before clearing to let player see the cards
+      // Delay before clearing to let player see the cards, then refill hands
       aiTimerRef.current = setTimeout(() => {
+        // Refill AI hand if deck available
+        let refillDeck = gameState66.deck;
+        let aiNewHand = newOpponentHand;
+        if (gameState66.deck.length > 0) {
+          const { card: drawnCard, remainingDeck } = drawCard66(gameState66.deck);
+          if (drawnCard) {
+            aiNewHand = [...newOpponentHand, drawnCard];
+            refillDeck = remainingDeck;
+          }
+        }
+
+        // Refill player hand if deck available
+        let playerNewHand = gameState66.player.hand;
+        if (refillDeck.length > 0 && gameState66.player.hand.length < 6) {
+          const { card: drawnCard, remainingDeck } = drawCard66(refillDeck);
+          if (drawnCard) {
+            playerNewHand = [...gameState66.player.hand, drawnCard];
+            refillDeck = remainingDeck;
+          }
+        }
+
         setGameState66(prev => prev ? {
           ...prev,
           currentTrick: { player: null, opponent: null },
           gamePhase: nextPhase,
+          opponent: { ...prev.opponent, hand: aiNewHand },
+          player: { ...prev.player, hand: playerNewHand },
+          deck: refillDeck,
         } : null);
         if (gameEnded66) setShowResultModal(true);
       }, 1500);

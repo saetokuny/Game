@@ -50,6 +50,10 @@ export function shuffleDeck(deck: PlayingCard[]): PlayingCard[] {
 }
 
 export function calculateHandValue(cards: PlayingCard[]): number {
+  // Oicho-Kabu: max 3 cards per hand
+  if (cards.length > 3) {
+    return NaN; // Invalid hand
+  }
   const sum = cards.reduce((acc, card) => acc + card.value, 0);
   return sum % 10;
 }
