@@ -1586,4 +1586,111 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: Spacing.xs,
   },
+  // 66 Game Styles
+  container66: {
+    flex: 1,
+  },
+  gameArea66: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.sm,
+  },
+  scoreFlag66: {
+    width: 60,
+    height: 40,
+    backgroundColor: '#0D7DD9',
+    borderRadius: 0,
+    borderBottomRightRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    paddingLeft: Spacing.md,
+    marginLeft: 0,
+  },
+  flagContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  flagScore: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  opponentSection66: {
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+  },
+  cardsRow66: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+    minHeight: 100,
+    flexWrap: 'nowrap',
+  },
+  cardWrapper66: {
+    marginHorizontal: 2,
+  },
+  centerArea66: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+  },
+  centerRow66: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Spacing.lg,
+  },
+  trumpArea66: {
+    alignItems: 'center',
+  },
+  trumpCard66: {
+    width: 50,
+    height: 80,
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trumpCardText66: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  playedCardsArea66: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  playedCard66: {
+    width: 45,
+    height: 70,
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#CCCCCC',
+  },
+  playedCardText66: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000000',
+  },
+  deckArea66: {
+    alignItems: 'center',
+  },
+  deckCard66: {
+    width: 50,
+    height: 80,
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deckCountText66: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#FFD700',
+    marginTop: Spacing.xs,
+  },
+  playerSection66: {
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+  },
 });
