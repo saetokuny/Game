@@ -328,7 +328,7 @@ export default function GameScreen({ navigation, language = "en" }: GameScreenPr
 
       <View style={styles.gameArea}>
         <View style={styles.opponentSection}>
-          <ThemedText style={styles.playerLabel}>AI</ThemedText>
+          <ThemedText style={styles.playerLabel}>{t('ai', language)}</ThemedText>
           <View style={styles.cardsRow}>
             {gameState.opponent.cards.map((card, index) => (
               <View key={`opp-${index}`} style={styles.cardWrapper}>
@@ -339,7 +339,7 @@ export default function GameScreen({ navigation, language = "en" }: GameScreenPr
           {gameState.opponent.cards.some((c) => c.faceUp) ? (
             <ScoreDisplay
               value={calculateHandValue(gameState.opponent.cards)}
-              label="Score"
+              label={t('score', language)}
               showHandName
               isWinner={roundResult === "opponent"}
               isLoser={roundResult === "player"}
@@ -351,17 +351,17 @@ export default function GameScreen({ navigation, language = "en" }: GameScreenPr
         <View style={[styles.tableCenter, { backgroundColor: colors.cardTable }]}>
           <View style={styles.roundInfo}>
             <ThemedText style={styles.roundText} lightColor="#FFFFFF" darkColor="#FFFFFF">
-              Round {gameState.currentRound} of {gameState.maxRounds}
+              {t('round', language)} {gameState.currentRound} {t('of', language)} {gameState.maxRounds}
             </ThemedText>
             <View style={styles.scoreBoard}>
               <ThemedText style={styles.scoreBoardText} lightColor="#D4AF37" darkColor="#D4AF37">
-                You: {gameState.playerTotalWins}
+                {t('you', language)}: {gameState.playerTotalWins}
               </ThemedText>
               <ThemedText style={styles.scoreBoardText} lightColor="#FFFFFF" darkColor="#FFFFFF">
                 {" - "}
               </ThemedText>
               <ThemedText style={styles.scoreBoardText} lightColor="#D4AF37" darkColor="#D4AF37">
-                AI: {gameState.opponentTotalWins}
+                {t('ai', language)}: {gameState.opponentTotalWins}
               </ThemedText>
             </View>
           </View>
