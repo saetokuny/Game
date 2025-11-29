@@ -411,7 +411,8 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
 
           let aiMarriageBonus = 0;
           if (state.roundNumber > 1) {
-            aiMarriageBonus = calculateMarriageBonus(state.opponent.hand, aiCard, state.trump);
+            // AI is LEADER - gets 40 puan if has Q+K in same suit
+            aiMarriageBonus = calculateMarriageBonus(state.opponent.hand, aiCard, state.trump, true);
           }
 
           if (settings?.soundEnabled) {
@@ -457,12 +458,18 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
           return !(c.suit === aiCard.suit && c.rank === aiCard.rank && state.opponent.hand.indexOf(c) === idx);
         });
 
+        // AI is RESPONDER - gets 20 puan if has Q+K in same suit
+        let aiMarriageBonus = 0;
+        if (state.roundNumber > 1) {
+          aiMarriageBonus = calculateMarriageBonus(state.opponent.hand, aiCard, state.trump, false);
+        }
+
         const winner = determineTrickWinner(state.currentTrick.player, aiCard, state.trump, true);
         const trickCards = [state.currentTrick.player, aiCard];
         const trickPoints = calculateTrickPoints(trickCards);
         
         let newPlayerScore = state.player.score;
-        let newOpponentScore = state.opponent.score;
+        let newOpponentScore = state.opponent.score + aiMarriageBonus;
         let newPlayerTricks = state.player.tricksWon;
         let newOpponentTricks = state.opponent.tricksWon;
         
