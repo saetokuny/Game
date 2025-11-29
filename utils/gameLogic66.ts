@@ -220,19 +220,23 @@ export function initializeGame66(): Game66State {
   };
 }
 
-export function calculateMarriageBonus(hand: Card66[], playedCard: Card66, trump: Card66 | null): number {
-  if (!trump) return 0;
+export function calculateMarriageBonus(
+  hand: Card66[], 
+  playedCard: Card66, 
+  trump: Card66 | null,
+  isLeader: boolean = true // true = 40 puan (leader), false = 20 puan (responder)
+): number {
+  // Played card must be Q or K
+  if (playedCard.rank !== 'Q' && playedCard.rank !== 'K') return 0;
   
-  const suitCards = hand.filter(c => c.suit === playedCard.suit);
-  const hasQAndK = suitCards.some(c => c.rank === 'Q') && suitCards.some(c => c.rank === 'K');
+  // Must have the other royal card (Q or K) in same suit
+  const otherRoyal = playedCard.rank === 'Q' ? 'K' : 'Q';
+  const hasOtherRoyal = hand.some(c => c.suit === playedCard.suit && c.rank === otherRoyal);
   
-  if (!hasQAndK) return 0;
+  if (!hasOtherRoyal) return 0;
   
-  const playedQOrK = playedCard.rank === 'Q' || playedCard.rank === 'K';
-  if (!playedQOrK) return 0;
-  
-  if (playedCard.suit === trump.suit) return 40; // Royal marriage
-  return 20; // Common marriage
+  // 40 for leader (eli başlatan), 20 for responder (karşılık veren)
+  return isLeader ? 40 : 20;
 }
 
 export function canExchangeTrumpWithNine(hand: Card66[], trump: Card66 | null, trickNumber: number): Card66 | null {

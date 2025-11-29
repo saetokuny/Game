@@ -232,9 +232,14 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
     });
 
     // Calculate marriage bonus if applicable
+    // Player is LEADER if currentTrick.player is empty (player is leading)
     let marriageBonus = 0;
-    if (!gameState66.currentTrick.player && gameState66.roundNumber > 1) {
-      marriageBonus = calculateMarriageBonus(gameState66.player.hand, card, gameState66.trump);
+    const playerIsLeader = !gameState66.currentTrick.player;
+    if (playerIsLeader && gameState66.roundNumber > 1) {
+      marriageBonus = calculateMarriageBonus(gameState66.player.hand, card, gameState66.trump, true);
+    } else if (!playerIsLeader && gameState66.roundNumber > 1) {
+      // Player is RESPONDER if responding to opponent's led card
+      marriageBonus = calculateMarriageBonus(gameState66.player.hand, card, gameState66.trump, false);
     }
 
     // Draw a card after playing
