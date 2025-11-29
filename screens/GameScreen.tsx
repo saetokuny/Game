@@ -320,6 +320,11 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
     if (gameState.gamePhase !== "playerTurn" || isProcessing) return;
 
     await triggerHaptic();
+    
+    // Play stand/final decision sound
+    if (settings?.soundEnabled) {
+      audioSystem.playSound('cardPlay', settings.musicVolume);
+    }
 
     setGameState((prev) => ({
       ...prev,
@@ -567,8 +572,22 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
       gamePhase: isLastRound ? "gameEnd" : "roundEnd",
     }));
 
-    if (isLastRound) {
-      setGameEnded(true);
+    // Play round result sound
+    if (settings?.soundEnabled) {
+      if (isLastRound) {
+        const finalResult =
+          newPlayerWins > newOpponentWins
+            ? "win"
+            : newPlayerWins < newOpponentWins
+            ? "loss"
+            : "draw";
+        updateGameStats(finalResult);
+        audioSystem.playSound(finalResult === 'win' ? 'triumph' : finalResult === 'loss' ? 'defeat' : 'cardPlay', settings.musicVolume);
+      } else {
+        // Round end - play appropriate sound based on result
+        audioSystem.playSound(result === 'player' ? 'cardWin' : result === 'opponent' ? 'cardLose' : 'cardPlay', settings.musicVolume);
+      }
+    } else if (isLastRound) {
       const finalResult =
         newPlayerWins > newOpponentWins
           ? "win"
@@ -576,9 +595,6 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
           ? "loss"
           : "draw";
       updateGameStats(finalResult);
-      if (settings?.soundEnabled) {
-        audioSystem.playSound(finalResult === 'win' ? 'cardWin' : finalResult === 'loss' ? 'cardLose' : 'cardPlay', settings.musicVolume);
-      }
     }
 
     triggerHaptic(Haptics.ImpactFeedbackStyle.Heavy);
