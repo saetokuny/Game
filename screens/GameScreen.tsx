@@ -221,6 +221,11 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
     
     setIsProcessing(true);
     await triggerHaptic();
+    
+    // Play card sound
+    if (settings?.soundEnabled) {
+      audioSystem.playSound('cardPlay', settings.musicVolume);
+    }
 
     const newHand = gameState66.player.hand.filter((c, idx) => {
       return !(c.suit === card.suit && c.rank === card.rank && gameState66.player.hand.indexOf(c) === idx);
@@ -239,6 +244,13 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
       const { card: drawn, remainingDeck } = drawCard66(gameState66.deck);
       drawnCard = drawn;
       updatedDeck = remainingDeck;
+      
+      // Play draw sound when drawing a card
+      if (settings?.soundEnabled) {
+        setTimeout(() => {
+          audioSystem.playSound('cardDraw', settings.musicVolume);
+        }, 200);
+      }
     }
 
     const updatedPlayerHand = drawnCard ? [...newHand, drawnCard] : newHand;
@@ -824,14 +836,14 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
               ))}
             </View>
             
-            {gameState66.trump && gameState66.player.hand.some(c => c.rank === '9' && c.suit === gameState66.trump!.suit) && gameState66.gamePhase === 'playerTurn' ? (
+            {gameState66.trump && gameState66.gamePhase === 'playerTurn' && gameState66.player.hand.some(c => c.rank === '9' && c.suit === gameState66.trump!.suit) ? (
               <Pressable
                 onPress={exchangeNineWithTrump}
-                disabled={isProcessing}
+                disabled={isProcessing || !gameState66.player.hand.some(c => c.rank === '9' && c.suit === gameState66.trump!.suit)}
                 style={({ pressed }) => [
                   styles.exchangeButton,
                   {
-                    backgroundColor: colors.primary,
+                    backgroundColor: !isProcessing && gameState66.player.hand.some(c => c.rank === '9' && c.suit === gameState66.trump!.suit) ? colors.primary : colors.disabled,
                     opacity: pressed ? 0.7 : 1,
                   },
                 ]}
