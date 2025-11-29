@@ -704,12 +704,22 @@ export default function GameScreen({ navigation, language = "en", route }: GameS
                 <View style={styles.playedCardsArea66}>
                   {gameState66.currentTrick.player && (
                     <View style={[styles.playedCard66, { backgroundColor: '#F5F5F5' }]}>
-                      <ThemedText style={styles.playedCardText66}>{gameState66.currentTrick.player.rank}</ThemedText>
+                      <ThemedText style={[styles.playedCardText66, { color: gameState66.currentTrick.player.suit === 'hearts' || gameState66.currentTrick.player.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
+                        {gameState66.currentTrick.player.rank}
+                      </ThemedText>
+                      <ThemedText style={[styles.playedCardText66, { fontSize: 16, color: gameState66.currentTrick.player.suit === 'hearts' || gameState66.currentTrick.player.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
+                        {gameState66.currentTrick.player.suit === 'hearts' ? '♥' : gameState66.currentTrick.player.suit === 'diamonds' ? '♦' : gameState66.currentTrick.player.suit === 'clubs' ? '♣' : '♠'}
+                      </ThemedText>
                     </View>
                   )}
                   {gameState66.currentTrick.opponent && (
                     <View style={[styles.playedCard66, { backgroundColor: '#F5F5F5' }]}>
-                      <ThemedText style={styles.playedCardText66}>{gameState66.currentTrick.opponent.rank}</ThemedText>
+                      <ThemedText style={[styles.playedCardText66, { color: gameState66.currentTrick.opponent.suit === 'hearts' || gameState66.currentTrick.opponent.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
+                        {gameState66.currentTrick.opponent.rank}
+                      </ThemedText>
+                      <ThemedText style={[styles.playedCardText66, { fontSize: 16, color: gameState66.currentTrick.opponent.suit === 'hearts' || gameState66.currentTrick.opponent.suit === 'diamonds' ? '#E63946' : '#1D3557' }]}>
+                        {gameState66.currentTrick.opponent.suit === 'hearts' ? '♥' : gameState66.currentTrick.opponent.suit === 'diamonds' ? '♦' : gameState66.currentTrick.opponent.suit === 'clubs' ? '♣' : '♠'}
+                      </ThemedText>
                     </View>
                   )}
                 </View>

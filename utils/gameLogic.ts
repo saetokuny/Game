@@ -104,11 +104,25 @@ export function isSpecialHand(cards: PlayingCard[]): { isSpecial: boolean; name:
 }
 
 export function determineWinner(playerCards: PlayingCard[], opponentCards: PlayingCard[]): 'player' | 'opponent' | 'draw' {
-  const playerValue = calculateHandValue(playerCards);
-  const opponentValue = calculateHandValue(opponentCards);
+  // If opponent drew 3 cards and is in better position, use first 2 cards value only
+  let playerValue = calculateHandValue(playerCards);
+  let opponentValue = calculateHandValue(opponentCards);
+  
+  // If opponent has 3 cards, check if they're closer to 9 with 3 cards
+  // But player's initial 2-card value is still valid - player keeps that value
+  if (opponentCards.length === 3 && playerCards.length === 2) {
+    // Use opponent's 3-card value but only if it's better than their first 2
+    const opponentFirst2Value = (opponentCards[0].value + opponentCards[1].value) % 10;
+    if (opponentValue > opponentFirst2Value) {
+      // Keep opponent's 3-card value (which is better)
+    } else {
+      // Use first 2 card value
+      opponentValue = opponentFirst2Value;
+    }
+  }
 
   const playerSpecial = isSpecialHand(playerCards);
-  const opponentSpecial = isSpecialHand(opponentCards);
+  const opponentSpecial = isSpecialHand(opponentCards.slice(0, 2)); // Check special hands with first 2 cards only
 
   if (playerSpecial.isSpecial && !opponentSpecial.isSpecial) {
     return 'player';

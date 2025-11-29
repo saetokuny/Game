@@ -111,10 +111,16 @@ export function canPlayCard(card: Card66, hand: Card66[], ledCard: Card66 | null
   // If no card led yet (first trick), can play any card
   if (!ledCard) return true;
   
-  // If deck is empty, must play trump if you have it
+  // If deck is empty, must play trump if you have it, AND must follow suit if possible
   if (deckEmpty && trump) {
     const hasTrump = hand.some(c => c.suit === trump.suit);
+    const canFollowSuit = hand.some(c => c.suit === ledCard.suit);
+    
+    // If have trump, MUST play trump
     if (hasTrump && card.suit !== trump.suit) return false;
+    
+    // If don't have trump but can follow suit, MUST follow suit
+    if (!hasTrump && canFollowSuit && card.suit !== ledCard.suit) return false;
   }
   
   // Must follow suit if possible
